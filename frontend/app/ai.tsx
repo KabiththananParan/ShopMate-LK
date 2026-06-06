@@ -203,13 +203,16 @@ export const KaprukaAIChat: React.FC = () => {
         setFeedback({});
     };
 
-    const submitToChatAPI = async (userPrompt: string) => {
+    async function submitToChatAPI (userPrompt: string) {
         setLoading(true);
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ message: userPrompt })
+                body: JSON.stringify({ 
+                    message: userPrompt,
+                    history: messages,
+                 })
             });
 
             const data = await response.json();

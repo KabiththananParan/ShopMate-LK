@@ -7,8 +7,7 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { message } = body;
+    const { message, history = [] } = await req.json();
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -25,10 +24,12 @@ export async function POST(req: Request) {
           content:
             "You are ShopMate LK, a friendly Sri Lankan AI shopping assistant. Help users discover products, find gifts, compare products, and make shopping decisions.",
         },
-        {
-          role: "user",
-          content: message,
-        },
+
+        ...history.map((msg: any) => ({
+            role: msg.role,
+            content: msg.content,
+        })),
+
       ],
     });
 
