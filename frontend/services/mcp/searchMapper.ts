@@ -1,6 +1,7 @@
 import { Product } from "@/types/product";
 
 export function mapSearchResults(rawText: string): Product[] {
+  const seen = new Set<string>();
   const products: Product[] = [];
 
   const sections = rawText
@@ -22,6 +23,13 @@ export function mapSearchResults(rawText: string): Product[] {
     const id =
       detailsLine.match(/`([^`]+)`/)?.[1] ?? "";
 
+    // Remove duplicate products
+    if (seen.has(id)) {
+      continue;
+    }
+
+    seen.add(id);
+
     const priceMatch = detailsLine.match(
       /LKR\s+([\d,]+)/
     );
@@ -31,7 +39,7 @@ export function mapSearchResults(rawText: string): Product[] {
       : 0;
 
     const stockMatch = detailsLine.match(
-        /LKR\s+[\d,]+\s+·\s+(.*?)\s+·\s+ships/
+      /LKR\s+[\d,]+\s+·\s+(.*?)\s+·\s+ships/
     );
 
     const stock = stockMatch?.[1] ?? "";

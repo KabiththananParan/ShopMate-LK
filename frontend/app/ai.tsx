@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { OrbState } from 'orb-ui';
 
+import type { Product } from "@/types/product";
+
 // Icons
 const MicIcon = ({ className }: { className?: string }) => (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -127,6 +129,8 @@ type Message = {
     role: "user" | "assistant";
     content: string;
     timestamp: string;
+
+    products?: Product[];
 };
 
 export const KaprukaAIChat: React.FC = () => {
@@ -223,7 +227,11 @@ export const KaprukaAIChat: React.FC = () => {
                     id: crypto.randomUUID(),
                     role: 'assistant',
                     content: data.reply,
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    products: data.products ?? [],
+                    timestamp: new Date().toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
                 },
             ]);
         } catch (error) {
@@ -472,6 +480,39 @@ export const KaprukaAIChat: React.FC = () => {
                                                     <p className="text-sm md:text-base leading-relaxed text-slate-200">
                                                         {message.content}
                                                     </p>
+
+
+                                                    {message.products && message.products.length > 0 && (
+                                                        <div className="mt-4 grid gap-3">
+                                                            {message.products.map((product) => (
+                                                                <div
+                                                                    key={product.id}
+                                                                    className="rounded-xl border border-white/10 bg-slate-900/60 p-3"
+                                                                >
+                                                                    <h4 className="font-medium text-white">
+                                                                        {product.name}
+                                                                    </h4>
+
+                                                                    <p className="mt-1 text-sm text-slate-400">
+                                                                        LKR {product.price.toLocaleString()}
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-xs text-slate-500">
+                                                                        {product.stock}
+                                                                    </p>
+
+                                                                    <a
+                                                                        href={product.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="mt-2 inline-block text-sm text-sky-400 hover:text-sky-300"
+                                                                    >
+                                                                        View on Kapruka →
+                                                                    </a>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                     
                                                     {/* Actions Toolbar Interface Elements Box */}
                                                     <div className="mt-3.5 flex items-center gap-3.5 text-white/40 border-t border-white/5 pt-2.5">
