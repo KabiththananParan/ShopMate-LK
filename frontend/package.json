@@ -13,6 +13,7 @@
     "@elevenlabs/client": "^1.9.0",
     "@elevenlabs/react": "^1.6.4",
     "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@types/three": "^0.184.1",
