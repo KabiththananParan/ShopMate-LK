@@ -2,50 +2,53 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 import { Product } from "@/types/product";
+import { mapSearchResults } from "./searchMapper";
 
-const client = new Client({
+export async function searchProducts(
+  query: string
+): Promise<Product[]> {
+  const client = new Client({
     name: "shopmate-lk",
     version: "1.0.0",
-});
+  });
 
-const transport = new StreamableHTTPClientTransport(
+  const transport = new StreamableHTTPClientTransport(
     new URL("https://mcp.kapruka.com/mcp")
-);
+  );
 
-export async function searchProducts(query: string): Promise<Product[]> {
-    await client.connect(transport);
+  await client.connect(transport);
 
-    const result = await client.callTool({
-        name: "kapruka_search_products",
-        arguments: {
-            params: {
-                q: query,
-                limit: 5,
-                currency: "LKR",
-            },
-        },
-    });
+  const result = await client.callTool({
+    name: "kapruka_search_products",
+    arguments: {
+      params: {
+        q: query,
+        limit: 5,
+        currency: "LKR",
+      },
+    },
+  });
 
-    const rawText = result.structuredContent?.result ?? "";
+  const rawText =
+    (result.structuredContent as { result?: string })?.result ?? "";
 
-    console.log(result);
+  console.log(rawText);
 
-    return [];
+  return mapSearchResults(rawText);
 }
 
-
-function getProduct() {
-
+export async function getProduct() {
+  // TODO
 }
 
-function checkDelivery() {
-
+export async function checkDelivery() {
+  // TODO
 }
 
-function createOrder() {
-
+export async function createOrder() {
+  // TODO
 }
 
-function trackOrder() {
-
+export async function trackOrder() {
+  // TODO
 }
