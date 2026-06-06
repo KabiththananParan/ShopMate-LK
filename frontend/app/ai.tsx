@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import type { OrbState } from 'orb-ui';
 
-
-
 // Icons
 const MicIcon = ({ className }: { className?: string }) => (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -58,6 +56,74 @@ const HelpCircleIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
+const PlusIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+    </svg>
+);
+
+const CopyIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="14" height="14" x="8" y="8" rx="2" />
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </svg>
+);
+
+const CheckIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20 6 9 17l-5-5" />
+    </svg>
+);
+
+const ThumbsUpIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M7 10v12" />
+        <path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.4l-1.4 7A2 2 0 0 1 18.5 21H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h2.8L13 5.2a1.4 1.4 0 0 1 2 .7Z" />
+    </svg>
+);
+
+const ThumbsDownIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M17 14V2" />
+        <path d="M9 18.1 10 14H4.2a2 2 0 0 1-2-2.4l1.4-7A2 2 0 0 1 5.5 3H17a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2.8L11 18.8a1.4 1.4 0 0 1-2-.7Z" />
+    </svg>
+);
+
+const UploadIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 16V4" />
+        <path d="m7 9 5-5 5 5" />
+        <path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3" />
+    </svg>
+);
+
+const RefreshIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M21 12a9 9 0 0 1-9 9 9.8 9.8 0 0 1-6.7-2.7" />
+        <path d="M3 12a9 9 0 0 1 9-9 9.8 9.8 0 0 1 6.7 2.7" />
+        <path d="M3 19v-6h6" />
+        <path d="M21 5v6h-6" />
+    </svg>
+);
+
+const MoreIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <circle cx="5" cy="12" r="1.7" />
+        <circle cx="12" cy="12" r="1.7" />
+        <circle cx="19" cy="12" r="1.7" />
+    </svg>
+);
+
+const WaveIcon = ({ className }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <rect x="3" y="9" width="3" height="6" rx="1.5" />
+        <rect x="8" y="5" width="3" height="14" rx="1.5" />
+        <rect x="13" y="8" width="3" height="8" rx="1.5" />
+        <rect x="18" y="6" width="3" height="12" rx="1.5" />
+    </svg>
+);
+
 interface SuggestionCard {
     id: string;
     title: string;
@@ -65,11 +131,22 @@ interface SuggestionCard {
     prompt: string;
 }
 
+type Message = {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+};
+
 export const KaprukaAIChat: React.FC = () => {
     const [inputValue, setInputValue] = useState<string>('');
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [loading, setLoading] = useState(false);
+    const hasStartedChat = messages.length > 0;
+
     const [isListening, setIsListening] = useState<boolean>(false);
+    const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+    const [feedback, setFeedback] = useState<Record<string, 'like' | 'dislike'>>({});
     
-    // Simulating Orb's internal audio state variant ('speaking' | 'listening' | 'idle')
     const [orbState, setOrbState] = useState<OrbState>('idle');
     const [orbVolume, setOrbVolume] = useState<number>(0.08);
     const dockWaveBars = [0.28, 0.52, 0.74, 0.42, 0.9, 0.56, 0.36, 0.8, 0.46, 0.66, 0.32, 0.72, 0.5, 0.84, 0.38];
@@ -102,12 +179,109 @@ export const KaprukaAIChat: React.FC = () => {
     const handleHomeClick = () => {
         stopVoiceSession();
         setInputValue('');
+        setMessages([]); 
+        setFeedback({});
+    };
+
+    // Simulated API submission pipeline
+    const submitToChatAPI = async (userPrompt: string) => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ message: userPrompt })
+            });
+
+            const data = await response.json();
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: data.reply,
+                },
+            ]);
+        } catch (error) {
+            console.error(error);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: 'Sorry, something went wrong.',
+                },
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearchSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const userMessage = inputValue.trim();
+        if (!userMessage) return;
+
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: crypto.randomUUID(),
+                role: 'user',
+                content: userMessage,
+            },
+        ]);
+
+        setInputValue('');
+        await submitToChatAPI(userMessage);
+    };
+
+    // Action Handlers
+    const handleCopy = async (messageId: string, text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedMessageId(messageId);
+            setTimeout(() => setCopiedMessageId(null), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
+
+    const handleFeedback = (messageId: string, type: 'like' | 'dislike') => {
+        setFeedback(prev => ({
+            ...prev,
+            [messageId]: prev[messageId] === type ? undefined : type // Toggle option
+        }));
+    };
+
+    const handleShare = async (text: string) => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Kapruka AI Recommendation',
+                    text: text,
+                    url: window.location.href,
+                });
+            } catch (err) {
+                console.error('Sharing failed', err);
+            }
+        } else {
+            alert('Sharing link copied to your clipboard!');
+            await navigator.clipboard.writeText(`${text}\n\nShared from Kapruka AI.`);
+        }
+    };
+
+    const handleRegenerate = async () => {
+        // Find latest user message to run again
+        const userMessages = messages.filter(m => m.role === 'user');
+        if (userMessages.length === 0) return;
+        
+        const lastUserMessage = userMessages[userMessages.length - 1].content;
+        await submitToChatAPI(lastUserMessage);
     };
 
     useEffect(() => {
-        if (orbState === 'idle') {
-            return;
-        }
+        if (orbState === 'idle') return;
 
         const intervalId = window.setInterval(() => {
             const baseVolume = orbState === 'speaking' ? 0.55 : 0.34;
@@ -119,18 +293,12 @@ export const KaprukaAIChat: React.FC = () => {
         return () => window.clearInterval(intervalId);
     }, [orbState]);
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!inputValue.trim()) return;
-        alert(`Searching Kapruka AI for: "${inputValue}"`);
-    };
-
     return (
-        <div className="relative flex min-h-screen w-full flex-col justify-between overflow-hidden bg-[#0B0F19] p-6 font-sans select-none text-slate-200 md:p-12">
+        <div className="relative flex min-h-screen w-full flex-col justify-between overflow-hidden font-sans select-none bg-[#0B0F19] p-6 text-slate-200 md:p-12 transition-colors duration-500">
             
             {/* 1. Technical Grid Overlay */}
             <div 
-                className="absolute inset-0 opacity-15 pointer-events-none" 
+                className="absolute inset-0 pointer-events-none opacity-15"
                 style={{
                     backgroundImage: `
                         linear-gradient(to right, #38BDF8 1px, transparent 1px),
@@ -140,24 +308,31 @@ export const KaprukaAIChat: React.FC = () => {
                 }}
             />
 
-            {/* 2. Background Glow Ambiance (Softened to balance with the ElevenLabs Orb) */}
+            {/* 2. Background Glow Ambiance */}
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[60vw] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-[#005CB9]/10 via-[#0EA5E9]/10 to-[#FFC72C]/5 blur-[120px] opacity-60" />
             
             {/* Header section */}
-            <header className="z-10 flex w-full items-center justify-between">
-                <div className="flex items-center gap-2">
+            <header className="z-10 flex w-full items-center justify-between pb-4">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={handleHomeClick}>
                     <span className="text-2xl font-black tracking-tight text-white">
                         KAPRUKA <span className="text-[#38BDF8]">AI</span>
                     </span>
                 </div>
                 <div className="flex items-center gap-4 text-sm font-medium text-slate-400">
-                    <a href="https://www.kapruka.com" className="transition-colors hover:text-[#38BDF8]">Main Site</a>
+                    {hasStartedChat && (
+                        <button onClick={handleHomeClick} className="text-[#38BDF8] hover:underline flex items-center gap-1">
+                            <HomeIcon className="h-4 w-4" /> Reset Chat
+                        </button>
+                    )}
+                    <a href="https://www.kapruka.com" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#38BDF8]">Main Site</a>
                     <HelpCircleIcon className="h-5 w-5 cursor-pointer hover:text-white" />
                 </div>
             </header>
 
             {/* Core Interaction Engine Frame */}
-            <main className="z-10 mx-auto flex w-full max-w-4xl flex-grow flex-col justify-center transition-all duration-500">
+            <main className={`z-10 mx-auto flex w-full max-w-4xl flex-grow flex-col transition-all duration-500 ${
+                hasStartedChat ? 'max-w-5xl justify-between pb-0 pt-4' : 'justify-center'
+            }`}>
                 
                 {/* CONDITIONAL STATE 1: VOICE INTERACTION INTERFACE */}
                 {isListening ? (
@@ -167,7 +342,6 @@ export const KaprukaAIChat: React.FC = () => {
                             {orbState === 'listening' ? 'Listening to you...' : 'Kapruka AI is Speaking...'}
                         </p>
                         
-                        {/* Container wrapper for ElevenLabs Orb to guarantee center-point scaling */}
                         <div
                             className="voice-orb-stage voice-orb-siri my-12 flex h-72 w-72 items-center justify-center"
                             style={{ '--orb-volume': orbVolume } as React.CSSProperties}
@@ -237,45 +411,194 @@ export const KaprukaAIChat: React.FC = () => {
                 ) : (
                     
                     /* CONDITIONAL STATE 2: DEFAULT SEARCH & GRID INTERFACE */
-                    <div className="animate-fade-in">
-                        <div className="mb-8">
+                    <div className={`animate-fade-in ${hasStartedChat ? 'flex h-[calc(100vh-180px)] flex-col justify-between' : ''}`}>
+                        <div className={`${hasStartedChat ? 'hidden' : 'mb-8'}`}>
                             <div className="mb-2 h-[3px] w-12 rounded-full bg-[#FFC72C] shadow-lg shadow-[#FFC72C]/50" />
-                            <p className="text-sm font-bold uppercase tracking-widest text-slate-400">System Ready</p>
-                            <h1 className="mt-1 flex flex-wrap items-center gap-3 text-3xl font-extrabold tracking-tight text-white md:text-5xl">
-                                <ShoppingCartIcon className="h-9 w-9 shrink-0 text-[#38BDF8] md:h-12 md:w-12" />
+                            <p className="text-sm font-bold uppercase tracking-widest text-slate-400">
+                                System Ready
+                            </p>
+                            <h1 className="mt-1 flex flex-wrap items-center gap-3 font-extrabold tracking-tight text-white transition-all duration-300 text-3xl md:text-5xl">
+                                <ShoppingCartIcon className="shrink-0 text-[#38BDF8] h-9 w-9 md:h-12 md:w-12" />
                                 What would you like to buy today?
                             </h1>
                         </div>
 
-                        {/* Glassmorphic Search Container */}
-                        <form onSubmit={handleSearchSubmit} className="group relative mb-10">
-                            <div className="pointer-events-none absolute inset-y-0 left-6 flex items-center text-slate-400 transition-colors group-focus-within:text-[#38BDF8]">
-                                <SparklesIcon className="h-6 w-6" />
+                        {hasStartedChat && (
+                            <div className="flex-1 overflow-y-auto pb-6 pt-1 pr-2 space-y-6 low-profile-scrollbar">
+                                <div className="mx-auto flex w-full max-w-[960px] flex-col gap-6">
+                                {messages.map((message) => (
+                                    <div
+                                        key={message.id}
+                                        className={`flex w-full ${
+                                            message.role === 'user' ? 'justify-end' : 'justify-start'
+                                        }`}
+                                    >
+                                        {message.role === 'user' ? (
+                                            <div className="max-w-[75%] rounded-[24px] bg-[#222A3A] border border-white/10 px-5 py-3 text-base leading-relaxed text-white shadow-md">
+                                                {message.content}
+                                            </div>
+                                        ) : (
+                                            <div className="max-w-[85%] text-left rounded-2xl border border-white/5 bg-slate-900/40 backdrop-blur-md p-5 shadow-xl">
+                                                <p className="text-base leading-7 text-slate-100 md:text-[17px]">
+                                                    {message.content}
+                                                </p>
+                                                
+                                                {/* Active Functional Action Buttons Toolbar */}
+                                                <div className="mt-4 flex items-center gap-4 text-white/60">
+                                                    
+                                                    {/* 1. Copy Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCopy(message.id, message.content)}
+                                                        className="flex h-5 w-5 items-center justify-center rounded text-white/70 transition hover:text-[#38BDF8]"
+                                                        title="Copy text"
+                                                    >
+                                                        {copiedMessageId === message.id ? (
+                                                            <CheckIcon className="h-4 w-4 text-emerald-400" />
+                                                        ) : (
+                                                            <CopyIcon className="h-4 w-4" />
+                                                        )}
+                                                    </button>
+
+                                                    {/* 2. Thumbs Up Feedback */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFeedback(message.id, 'like')}
+                                                        className={`flex h-5 w-5 items-center justify-center rounded transition ${
+                                                            feedback[message.id] === 'like' ? 'text-emerald-400' : 'text-white/70 hover:text-emerald-400'
+                                                        }`}
+                                                        title="Good response"
+                                                    >
+                                                        <ThumbsUpIcon className="h-4 w-4" />
+                                                    </button>
+
+                                                    {/* 3. Thumbs Down Feedback */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFeedback(message.id, 'dislike')}
+                                                        className={`flex h-5 w-5 items-center justify-center rounded transition ${
+                                                            feedback[message.id] === 'dislike' ? 'text-rose-400' : 'text-white/70 hover:text-rose-400'
+                                                        }`}
+                                                        title="Bad response"
+                                                    >
+                                                        <ThumbsDownIcon className="h-4 w-4" />
+                                                    </button>
+
+                                                    {/* 4. Share Output */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleShare(message.content)}
+                                                        className="flex h-5 w-5 items-center justify-center rounded text-white/70 transition hover:text-[#38BDF8]"
+                                                        title="Share"
+                                                    >
+                                                        <UploadIcon className="h-4 w-4" />
+                                                    </button>
+
+                                                    {/* 5. Regenerate Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleRegenerate}
+                                                        className="flex h-5 w-5 items-center justify-center rounded text-white/70 transition hover:text-[#38BDF8]"
+                                                        title="Regenerate Last Response"
+                                                    >
+                                                        <RefreshIcon className="h-4 w-4" />
+                                                    </button>
+
+                                                    {/* 6. More Actions */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => alert('Additional system features coming soon!')}
+                                                        className="flex h-5 w-5 items-center justify-center rounded text-white/70 transition hover:text-[#38BDF8]"
+                                                        title="More options"
+                                                    >
+                                                        <MoreIcon className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+
+                                {loading && (
+                                    <div className="flex justify-start">
+                                        <div className="max-w-[85%] rounded-2xl border border-white/5 bg-slate-900/40 p-5">
+                                            <p className="text-slate-300 animate-pulse">
+                                                ShopMate LK is thinking...
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                                </div>
                             </div>
+                        )}
 
-                            <input
-                                type="text"
-                                className="h-20 w-full rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-xl pl-16 pr-36 text-xl text-white transition-all duration-300 placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/30 focus:shadow-2xl focus:shadow-cyan-500/10"
-                                placeholder="Ask me anything..."
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                autoFocus
-                            />
-
-                            {/* Premium Dual-State Action Button */}
+                        {/* Glassmorphic Search Container */}
+                        <form onSubmit={handleSearchSubmit} className={`${hasStartedChat ? 'mx-auto mb-2 w-full max-w-[960px] pb-0' : 'mb-10'} group relative`}>
                             <button
                                 type="button"
-                                onClick={handleVoiceToggle}
-                                className="absolute inset-y-3 right-3 flex items-center justify-center gap-2 rounded-xl px-5 font-semibold transition-all duration-300 active:scale-95 bg-[#005CB9] text-white hover:bg-[#006ee0] hover:shadow-lg hover:shadow-sky-500/20 border border-sky-500/30"
-                                aria-label="Start voice search"
+                                className={`absolute left-5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center rounded-full transition ${
+                                    hasStartedChat
+                                        ? 'h-8 w-8 text-white/90 hover:bg-white/10'
+                                        : 'pointer-events-none text-slate-400 group-focus-within:text-[#38BDF8]'
+                                }`}
+                                aria-label="Add attachment"
                             >
-                                <span className="text-sm tracking-wide">Speak</span>
-                                <MicIcon className="h-5 w-5" />
+                                {hasStartedChat ? <PlusIcon className="h-6 w-6" /> : <SparklesIcon className="h-6 w-6" />}
                             </button>
+
+                            <div className="relative rounded-2xl border border-white/10 bg-slate-950/70 shadow-xl shadow-black/10 backdrop-blur-xl focus-within:border-[#38BDF8]">
+                                <input
+                                    type="text"
+                                    className={`w-full text-white transition-all duration-300 placeholder:text-slate-500 focus:outline-none bg-transparent ${
+                                        hasStartedChat
+                                            ? 'h-16 pl-16 pr-28 text-base placeholder:text-[#b4b4b4]'
+                                            : 'h-20 pl-16 pr-36 text-xl focus:shadow-2xl focus:shadow-cyan-500/10'
+                                    }`}
+                                    placeholder={hasStartedChat ? 'Ask anything...' : 'Ask me anything...'}
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    autoFocus
+                                />
+
+                                {hasStartedChat && (
+                                    <div className="absolute inset-y-0 right-3 flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleVoiceToggle}
+                                            className="flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:bg-white/10"
+                                            aria-label="Start voice search"
+                                        >
+                                            <MicIcon className="h-5 w-5" />
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex h-11 w-11 items-center justify-center rounded-full bg-[#005CB9] text-white transition hover:bg-[#006ee0] active:scale-95"
+                                            aria-label="Send message"
+                                        >
+                                            <WaveIcon className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Premium Dual-State Action Button */}
+                            {!hasStartedChat && (
+                                <button
+                                    type="button"
+                                    onClick={handleVoiceToggle}
+                                    className="absolute inset-y-3 right-3 flex items-center justify-center gap-2 rounded-xl px-5 font-semibold transition-all duration-300 active:scale-95 bg-[#005CB9] text-white hover:bg-[#006ee0] hover:shadow-lg hover:shadow-sky-500/20 border border-sky-500/30"
+                                    aria-label="Start voice search"
+                                >
+                                    <span className="text-sm tracking-wide">Speak</span>
+                                    <MicIcon className="h-5 w-5" />
+                                </button>
+                            )}
                         </form>
 
                         {/* Glassmorphic Grid Cards */}
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div className={`grid grid-cols-1 gap-6 transition-all duration-300 md:grid-cols-3 ${
+                            hasStartedChat ? 'hidden' : ''
+                        }`}>
                             {suggestions.map((card) => (
                                 <button 
                                     key={card.id} 
@@ -300,9 +623,9 @@ export const KaprukaAIChat: React.FC = () => {
             </main>
 
             {!isListening && (
-            <footer className="z-10 w-full border-t border-white/5 pt-4 text-center text-xs font-medium text-slate-500">
-                © {new Date().getFullYear()} Kapruka AI Assistant. Delivering love and care across Sri Lanka.
-            </footer>
+                <footer className="z-10 w-full border-t border-white/5 pt-4 text-center text-xs font-medium text-slate-500 mt-4">
+                    © {new Date().getFullYear()} Kapruka AI Assistant. Delivering love and care across Sri Lanka.
+                </footer>
             )}
         </div>
     );
