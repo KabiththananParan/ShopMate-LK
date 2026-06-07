@@ -482,66 +482,104 @@ export const KaprukaAIChat: React.FC = () => {
                                                     </p>
 
 
-                                                    {message.products && message.products.length > 0 && (
-                                                        <div className="mt-4 grid gap-3">
-                                                            {message.products.map((product) => (
-                                                                <div
-                                                                    key={product.id}
-                                                                    className="rounded-xl border border-white/10 bg-slate-900/60 p-3"
-                                                                >
-                                                                    
-                                                                    {product.image && (
-                                                                        <img
-                                                                            src={product.image}
-                                                                            alt={product.name}
-                                                                            className="mb-3 h-48 w-full rounded-lg object-cover"
-                                                                        />
-                                                                    )}
-                                                                                                                                        
-                                                                    <h4 className="font-medium text-white">
-                                                                        {product.name}
-                                                                    </h4>
+{message.products && message.products.length > 0 && (
+    /* Main Layout Grid split into Left (Info) and Right (Cards) */
+    <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
+        
+        {/* LEFT SIDE: Dynamic Product Descriptions & Context List */}
+        <div className="lg:col-span-4 space-y-4">
+            {/* Context Header */}
+            <div className="rounded-xl border border-white/5 bg-slate-900/40 p-4 text-slate-300 text-sm backdrop-blur-sm">
+                <p className="font-medium text-white mb-1">💡 Product Overview</p>
+                <p className="text-xs text-slate-400">
+                    Review the product details below. You can quickly add items to your bag from the right panel.
+                </p>
+            </div>
 
-                                                                    <p className="mt-1 text-sm text-slate-400">
-                                                                        LKR {product.price.toLocaleString()}
-                                                                    </p>
+            {/* Rendered List of Descriptions */}
+            <div className="space-y-3">
+                {message.products.map((product) => (
+                    <div 
+                        key={`desc-${product.id}`} 
+                        className="rounded-xl border border-white/10 bg-slate-900/30 p-3.5 transition hover:bg-slate-900/50"
+                    >
+                        <h5 className="text-xs font-semibold text-sky-400 uppercase tracking-wider mb-1">
+                            {product.name}
+                        </h5>
+                        {product.description ? (
+                            <p className="text-sm text-slate-300 leading-relaxed">
+                                {product.description}
+                            </p>
+                        ) : (
+                            <p className="text-xs italic text-slate-500">
+                                No additional description available.
+                            </p>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
 
-                                                                    <p className="mt-1 text-xs text-slate-500">
-                                                                        {product.stock}
-                                                                    </p>
+        {/* RIGHT SIDE: Cleaner, Card-focused Products Grid */}
+        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {message.products.map((product) => (
+                <div
+                    key={product.id}
+                    className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-xl transition-all duration-200 hover:border-white/20"
+                >
+                    <div>
+                        {/* Clean Product Image */}
+                        {product.image && (
+                            <div className="overflow-hidden rounded-xl bg-slate-950 mb-3.5">
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="h-44 w-full object-cover transition-transform duration-300 hover:scale-105"
+                                />
+                            </div>
+                        )}
 
-                                                                    {product.description && (
-                                                                        <p className="mt-2 text-sm text-slate-400 line-clamp-3">
-                                                                            {product.description}
-                                                                        </p>
-                                                                    )}
+                        {/* Product Core Info */}
+                        <h4 className="font-semibold text-base text-white tracking-tight line-clamp-1">
+                            {product.name}
+                        </h4>
 
-                                                                    
+                        <div className="mt-1.5 flex items-baseline justify-between">
+                            <p className="text-base font-bold text-sky-400">
+                                LKR {product.price.toLocaleString()}
+                            </p>
+                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
+                                Stock: {product.stock}
+                            </span>
+                        </div>
+                    </div>
 
-                                                                    <div className="mt-4 flex gap-3">
-                                                                    <a
-                                                                        href={product.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
-                                                                    >
-                                                                        Buy Now
-                                                                    </a>
+                    {/* Action Row */}
+                    <div className="mt-5 flex items-center gap-2.5">
+                        <button
+                            onClick={() => {
+                                alert(`${product.name} Added!`);
+                            }}
+                            className="flex-1 rounded-xl bg-sky-500 py-2.5 text-xs font-semibold text-white transition-all active:scale-[0.98] hover:bg-sky-600 shadow-md shadow-sky-500/10 text-center"
+                        >
+                            Add to Bag
+                        </button>
 
-                                                                    <a
-                                                                        href={product.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5"
-                                                                    >
-                                                                        View Details
-                                                                    </a>
-                                                                    </div>
+                        <a
+                            href={product.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/5 whitespace-nowrap"
+                        >
+                            Details
+                        </a>
+                    </div>
+                </div>
+            ))}
+        </div>
 
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
+    </div>
+)}
                                                     
                                                     {/* Actions Toolbar Interface Elements Box */}
                                                     <div className="mt-3.5 flex items-center gap-3.5 text-white/40 border-t border-white/5 pt-2.5">
