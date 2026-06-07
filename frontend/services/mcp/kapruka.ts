@@ -37,8 +37,31 @@ export async function searchProducts(
   return mapSearchResults(rawText);
 }
 
-export async function getProduct() {
-  // TODO
+export async function getProduct(productId: string) {
+  const client = new Client({
+    name: "shopmate-lk",
+    version: "1.0.0",
+  });
+
+  const transport = new StreamableHTTPClientTransport(
+    new URL("https://mcp.kapruka.com/mcp")
+  );
+
+  await client.connect(transport);
+
+  const result = await client.callTool({
+    name: "kapruka_get_product",
+    arguments: {
+        params: {
+        product_id: productId,
+        currency: "LKR",
+        },
+    },
+    });
+
+  console.log(result);
+
+  return result;
 }
 
 export async function checkDelivery() {
