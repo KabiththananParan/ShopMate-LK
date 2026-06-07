@@ -3,6 +3,8 @@ import { Product } from "@/types/product";
 export function mapKaprukaProduct(rawData: string): Product {
   const lines = rawData.split("\n");
 
+  console.log(lines);
+
   const name =
     lines[0]?.replace("## ", "").trim() ?? "";
 
@@ -61,13 +63,17 @@ export function mapKaprukaProduct(rawData: string): Product {
     line.includes("**Image**")
   );
 
-  const description =
-    imageIndex > -1
-      ? lines
-          .slice(8, imageIndex)
-          .join(" ")
-          .trim()
-      : "";
+  const rawDescription =
+  imageIndex > -1
+    ? lines
+        .slice(9, imageIndex)
+        .join(" ")
+        .trim()
+    : "";
+
+const description = rawDescription
+  .replace(/^.*?Kapruka Cakes Cakes\s+/, "")
+  .trim();
 
   return {
     id,

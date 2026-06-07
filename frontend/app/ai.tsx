@@ -489,6 +489,15 @@ export const KaprukaAIChat: React.FC = () => {
                                                                     key={product.id}
                                                                     className="rounded-xl border border-white/10 bg-slate-900/60 p-3"
                                                                 >
+                                                                    
+                                                                    {product.image && (
+                                                                        <img
+                                                                            src={product.image}
+                                                                            alt={product.name}
+                                                                            className="mb-3 h-48 w-full rounded-lg object-cover"
+                                                                        />
+                                                                    )}
+                                                                                                                                        
                                                                     <h4 className="font-medium text-white">
                                                                         {product.name}
                                                                     </h4>
@@ -501,14 +510,34 @@ export const KaprukaAIChat: React.FC = () => {
                                                                         {product.stock}
                                                                     </p>
 
+                                                                    {product.description && (
+                                                                        <p className="mt-2 text-sm text-slate-400 line-clamp-3">
+                                                                            {product.description}
+                                                                        </p>
+                                                                    )}
+
+                                                                    
+
+                                                                    <div className="mt-4 flex gap-3">
                                                                     <a
                                                                         href={product.url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="mt-2 inline-block text-sm text-sky-400 hover:text-sky-300"
+                                                                        className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
                                                                     >
-                                                                        View on Kapruka →
+                                                                        Buy Now
                                                                     </a>
+
+                                                                    <a
+                                                                        href={product.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5"
+                                                                    >
+                                                                        View Details
+                                                                    </a>
+                                                                    </div>
+
                                                                 </div>
                                                             ))}
                                                         </div>

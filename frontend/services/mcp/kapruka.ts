@@ -3,6 +3,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 
 import { Product } from "@/types/product";
 import { mapSearchResults } from "./searchMapper";
+import { mapKaprukaProduct } from "./productMapper";
 
 export async function searchProducts(
   query: string
@@ -32,12 +33,18 @@ export async function searchProducts(
   const rawText =
     (result.structuredContent as { result?: string })?.result ?? "";
 
-  console.log(rawText);
+  const products = mapSearchResults(rawText);
 
-  return mapSearchResults(rawText);
+  return await Promise.all(
+    products.slice(0, 3).map((product) =>
+      getProduct(product.id)
+    )
+  );
 }
 
-export async function getProduct(productId: string) {
+export async function getProduct(
+  productId: string
+): Promise<Product> {
   const client = new Client({
     name: "shopmate-lk",
     version: "1.0.0",
@@ -52,16 +59,17 @@ export async function getProduct(productId: string) {
   const result = await client.callTool({
     name: "kapruka_get_product",
     arguments: {
-        params: {
+      params: {
         product_id: productId,
         currency: "LKR",
-        },
+      },
     },
-    });
+  });
 
-  console.log(result);
+  const rawText =
+    (result.structuredContent as { result?: string })?.result ?? "";
 
-  return result;
+  return mapKaprukaProduct(rawText);
 }
 
 export async function checkDelivery() {
