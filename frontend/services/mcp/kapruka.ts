@@ -104,8 +104,80 @@ export async function checkDelivery(
   return result;
 }
 
-export async function createOrder() {
-  // TODO
+export async function createOrder(
+    cart: Product[],
+    checkoutData: {
+        city: string;
+        recipient: string;
+        phone: string;
+        address: string;
+        sender: string;
+    }
+) {
+    const client = new Client({
+        name: "shopmate-lk",
+        version: "1.0.0",
+    });
+
+    const transport =
+        new StreamableHTTPClientTransport(
+            new URL(
+                "https://mcp.kapruka.com/mcp"
+            )
+        );
+
+    await client.connect(transport);
+
+    const result =
+        await client.callTool({
+            name: "kapruka_create_order",
+
+            arguments: {
+                params: {
+                    cart: cart.map(
+                        (item) => ({
+                            product_id:
+                                item.id,
+                            quantity: 1,
+                        })
+                    ),
+
+                    recipient: {
+                        name:
+                            checkoutData.recipient,
+                        phone:
+                            checkoutData.phone,
+                    },
+
+                    delivery: {
+                        address:
+                            checkoutData.address,
+                        city:
+                            checkoutData.city,
+
+                        date:
+                            new Date()
+                                .toISOString()
+                                .split("T")[0],
+                    },
+
+                    sender: {
+                        name:
+                            checkoutData.sender,
+                        anonymous: false,
+                    },
+
+                    currency: "LKR",
+                },
+            },
+        });
+
+    console.log(
+        "ORDER RESULT:",
+        result
+    );
+
+    return result;
 }
 
 export async function trackOrder() {

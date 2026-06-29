@@ -4,6 +4,7 @@ import Groq from "groq-sdk";
 import {
   searchProducts,
   checkDelivery,
+  createOrder,
 } from "@/services/mcp/kapruka";
 
 import { normalizeCity } from "@/services/mcp/cityMapper";
@@ -152,9 +153,19 @@ if (
         finalCheckout
     );
 
+    const order = await createOrder(
+        cart,
+        finalCheckout
+    );
+
+    console.log(
+        "ORDER:",
+        order
+    );
+
     return NextResponse.json({
         reply:
-            `Thank you ${message}. All order information has been collected.`,
+            "Order created successfully! Please complete payment using the checkout link.",
 
         products: [],
 
@@ -163,6 +174,8 @@ if (
 
         checkoutData:
             finalCheckout,
+
+        order,
     });
 }
 

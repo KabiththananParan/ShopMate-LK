@@ -299,6 +299,11 @@ export const KaprukaAIChat: React.FC = () => {
             }
         );
 
+        console.log(
+            "SENDING CART:",
+            cart
+        );
+
         const data =
             await response.json();
 
