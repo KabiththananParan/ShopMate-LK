@@ -101,9 +101,50 @@ if (
     checkoutPending &&
     checkoutStage === "phone"
 ) {
+    return NextResponse.json({
+        reply:
+            `Phone number "${message}" saved.\n\nPlease provide the delivery address.`,
+
+        products: [],
+
+        nextCheckoutStage:
+            "address",
+
+        checkoutData: {
+            ...checkoutData,
+            phone: message,
+        },
+    });
+}
+
+if (
+    checkoutPending &&
+    checkoutStage === "address"
+) {
+    return NextResponse.json({
+        reply:
+            `Delivery address saved.\n\nPlease provide the sender's name.`,
+
+        products: [],
+
+        nextCheckoutStage:
+            "sender",
+
+        checkoutData: {
+            ...checkoutData,
+            address: message,
+        },
+    });
+}
+
+
+if (
+    checkoutPending &&
+    checkoutStage === "sender"
+) {
     const finalCheckout = {
         ...checkoutData,
-        phone: message,
+        sender: message,
     };
 
     console.log(
@@ -113,7 +154,7 @@ if (
 
     return NextResponse.json({
         reply:
-            `Checkout completed for ${finalCheckout.recipient}.`,
+            `Thank you ${message}. All order information has been collected.`,
 
         products: [],
 

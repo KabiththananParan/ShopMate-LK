@@ -167,6 +167,8 @@ export const KaprukaAIChat: React.FC = () => {
         | "city"
         | "recipient"
         | "phone"
+        | "address"
+        | "sender"
         | "complete"
     >("none");
 
@@ -175,6 +177,8 @@ export const KaprukaAIChat: React.FC = () => {
         city: "",
         recipient: "",
         phone: "",
+        address: "",
+        sender: "",
     });
 
     useEffect(() => {
