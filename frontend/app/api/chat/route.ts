@@ -18,6 +18,8 @@ export async function POST(req: Request) {
         message,
         lastProduct,
         cart = [],
+        checkoutPending = false,
+        checkoutStage = "none",
     } = await req.json();
 
     if (!message || typeof message !== "string") {
@@ -32,6 +34,126 @@ export async function POST(req: Request) {
     }
 
     const lowerMessage = message.toLowerCase();
+
+if (
+    checkoutPending &&
+    checkoutStage === "confirm" &&
+    (
+        lowerMessage === "yes" ||
+        lowerMessage === "y"
+    )
+) {
+    return NextResponse.json({
+        reply:
+            "Great! Checkout confirmed.\n\nPlease provide the delivery city (for example: Colombo 03, Jaffna, Kandy).",
+
+        products: [],
+
+        nextCheckoutStage: "city",
+    });
+}
+
+if (
+    checkoutPending &&
+    checkoutStage === "city"
+) {
+    return NextResponse.json({
+        reply:
+            `Delivery city set to "${message}".\n\nPlease provide the recipient's full name.`,
+
+        products: [],
+
+        nextCheckoutStage:
+            "recipient",
+
+        checkoutData: {
+            ...checkoutData,
+            city: message,
+        },
+    });
+}
+
+if (
+    checkoutPending &&
+    checkoutStage === "recipient"
+) {
+    return NextResponse.json({
+        reply:
+            `Recipient name set to "${message}".\n\nPlease provide the recipient's phone number.`,
+
+        products: [],
+
+        nextCheckoutStage:
+            "phone",
+
+        checkoutData: {
+            recipient: message,
+        },
+    });
+}
+
+
+if (
+    checkoutPending &&
+    checkoutStage === "phone"
+) {
+    return NextResponse.json({
+        reply:
+            `Phone number "${message}" received.\n\nAll checkout information has been collected. Ready to create the Kapruka order.`,
+
+        products: [],
+
+        nextCheckoutStage:
+            "complete",
+
+        checkoutData: {
+            phone: message,
+        },
+    });
+}
+
+
+
+
+    if (checkoutPending) {
+    const total = cart.reduce(
+        (sum: number, product: any) =>
+            sum + product.price,
+        0
+    );
+
+    return NextResponse.json({
+        reply:
+            `You have ${cart.length} item(s) worth ` +
+            `LKR ${total.toLocaleString()}.\n\n` +
+            `Proceed with checkout? Reply "yes" to continue.`,
+        products: cart,
+    });
+}
+
+
+    if (
+            lowerMessage === "checkout" ||
+            lowerMessage.includes("checkout")
+        ) {
+            if (cart.length === 0) {
+                return NextResponse.json({
+                    reply: "Your cart is empty. Add some products before checking out.",
+                    products: [],
+                });
+            }
+
+            const total = cart.reduce(
+                (sum: number, product: any) =>
+                    sum + product.price,
+                0
+            );
+
+            return NextResponse.json({
+                reply: `You have ${cart.length} item(s) worth LKR ${total.toLocaleString()}.\n\nWould you like to proceed to checkout?`,
+                products: cart,
+            });
+        }
 
 
     if (

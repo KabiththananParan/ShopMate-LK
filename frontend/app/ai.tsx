@@ -158,6 +158,25 @@ export const KaprukaAIChat: React.FC = () => {
 
     const [cart, setCart] = useState<Product[]>([]);
 
+    const [checkoutPending, setCheckoutPending] = useState(false);
+
+    const [checkoutStage, setCheckoutStage] =
+    useState<
+        | "none"
+        | "confirm"
+        | "city"
+        | "recipient"
+        | "phone"
+        | "complete"
+    >("none");
+
+    useEffect(() => {
+        console.log(
+            "Checkout Stage Changed:",
+            checkoutStage
+        );
+    }, [checkoutStage]);
+
     function getLastProduct() {
             const assistantMessages = messages.filter(
                 (m) =>
@@ -224,53 +243,102 @@ export const KaprukaAIChat: React.FC = () => {
         setFeedback({});
     };
 
-    async function submitToChatAPI (userPrompt: string) {
-        setLoading(true);
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
+ async function submitToChatAPI(
+    userPrompt: string
+) {
+    setLoading(true);
+
+    // STEP 13.4
+    const isCheckout =
+        userPrompt.toLowerCase() ===
+        "checkout";
+
+    if (isCheckout) {
+        setCheckoutPending(true);
+        setCheckoutStage("confirm");
+    }
+
+    try {
+        const response = await fetch(
+            "/api/chat",
+            {
+                method: "POST",
+                headers: {
+                    "content-type":
+                        "application/json",
+                },
                 body: JSON.stringify({
                     message: userPrompt,
-                    lastProduct: getLastProduct(),
+                    lastProduct:
+                        getLastProduct(),
                     cart,
-                })
-            });
+                    checkoutPending:
+                        checkoutPending ||
+                        isCheckout,
+                    checkoutStage,
+                }),
+            }
+        );
 
-            const data = await response.json();
+        const data =
+            await response.json();
 
-            setMessages((prev) => [
-                ...prev,
-                {
-                     id: crypto.randomUUID(),
-                        role: "assistant",
-                        content: data.reply,
-                        timestamp: new Date().toLocaleTimeString(
-                            [],
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }
-                        ),
-                        products: data.products,
-                        currentProduct: data.currentProduct,
-                },
-            ]);
-        } catch (error) {
-            console.error(error);
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id: crypto.randomUUID(),
-                    role: 'assistant',
-                    content: 'Sorry, something went wrong. Please check your connection and retry.',
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                },
-            ]);
-        } finally {
-            setLoading(false);
+        if (data.nextCheckoutStage) {
+            console.log(
+                "NEXT STAGE:",
+                data.nextCheckoutStage
+            );
+
+            setCheckoutStage(
+                data.nextCheckoutStage
+            );
         }
-    };
+
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content:
+                    data.reply,
+                timestamp:
+                    new Date().toLocaleTimeString(
+                        [],
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }
+                    ),
+                products:
+                    data.products,
+                currentProduct:
+                    data.currentProduct,
+            },
+        ]);
+    } catch (error) {
+        console.error(error);
+
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content:
+                    "Sorry, something went wrong. Please check your connection and retry.",
+                timestamp:
+                    new Date().toLocaleTimeString(
+                        [],
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }
+                    ),
+            },
+        ]);
+    } finally {
+        setLoading(false);
+    }
+}
 
     const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -279,6 +347,17 @@ export const KaprukaAIChat: React.FC = () => {
             "Last Product:",
             getLastProduct()
         );
+
+        console.log(
+            "Stage:",
+            checkoutStage
+        );
+
+        console.log(
+            "Checkout Stage:",
+            checkoutStage
+        );
+
         if (!userMessage || loading) return;
 
         setMessages((prev) => [
