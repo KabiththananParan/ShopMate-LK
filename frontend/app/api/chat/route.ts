@@ -14,6 +14,9 @@ import { Product } from "@/types/product";
 import { normalizeTanglish }
   from "@/services/language/tanglish";
 
+import { normalizeSinhala }
+  from "@/services/language/sinhala";
+
 type MCPResult = {
   result?: string;
 };
@@ -48,19 +51,29 @@ export async function POST(req: Request) {
       );
     }
 
-    const normalizedMessage =
-      normalizeTanglish(
+    const sinhalaMessage =
+      normalizeSinhala(
         message
       );
 
-    console.log(
-      "TANGLISH:",
-      normalizedMessage
-    );
+    const normalizedMessage =
+      normalizeTanglish(
+        sinhalaMessage
+      );
 
     const lowerMessage =
       normalizedMessage
         .toLowerCase();
+
+    console.log(
+      "SINHALA:",
+      sinhalaMessage
+    );
+
+    console.log(
+      "NORMALIZED:",
+      normalizedMessage
+    );
 
     if (
       checkoutPending &&
