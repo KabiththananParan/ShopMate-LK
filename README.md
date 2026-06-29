@@ -6,17 +6,15 @@
 ![MCP](https://img.shields.io/badge/MCP-Kapruka-green)
 ![Status](https://img.shields.io/badge/Status-Production-success)
 
-> ShopMate LK is a multilingual AI-powered shopping assistant built for Sri Lankan e-commerce. It enables users to discover products, build carts, schedule deliveries, create gift orders, and complete purchases using **English, Tanglish, Sinhala, and voice commands**.
+> **ShopMate LK** is a multilingual AI-powered shopping assistant built for Sri Lankan e-commerce. It enables users to discover products, build carts, schedule deliveries, create gift orders, and complete purchases using **English, Tanglish, Sinhala, and voice commands**.
 
 ---
 
-## 🌟 Why ShopMate LK?
+# 🌟 Why ShopMate LK?
 
-Traditional e-commerce websites require users to manually search, filter, compare, and navigate multiple pages before making a purchase.
+Traditional e-commerce requires users to manually search, filter, compare, and navigate through multiple pages before purchasing.
 
-ShopMate LK transforms this experience into a conversational AI assistant that understands how Sri Lankans naturally communicate.
-
-Examples:
+ShopMate LK transforms shopping into a conversational experience by allowing users to communicate naturally in the languages they already use.
 
 ### English
 
@@ -34,64 +32,238 @@ Examples:
 
 # ✨ Features
 
-### 🤖 AI Product Discovery
+## 🤖 AI Product Discovery
 
 * Natural language product search
-* AI-generated product recommendations
+* AI-powered recommendations
 * Product comparison assistance
+* Context-aware shopping conversations
 
-### 🛒 Smart Shopping Cart
+## 🛒 Smart Shopping Cart
 
 * Multi-item cart support
-* Quantity management
-* Cart persistence using localStorage
-* Remove items
+* Quantity controls
+* Remove products
 * Clear cart
+* Persistent cart using localStorage
 
-### 🎁 Gift Commerce
+## 🎁 Gift Commerce
 
 * Gift sender support
 * Personalized gift messages
 * Recipient management
 
-### 📦 Intelligent Checkout
+## 📦 Intelligent Checkout
 
+* Guided checkout workflow
 * Delivery city validation
 * Delivery date selection
-* Recipient information collection
+* Recipient collection
 * Address management
-* Order confirmation workflow
+* Order confirmation
 
-### 💳 Order Processing
+## 💳 Order Processing
 
 * Kapruka order creation
 * Dynamic payment links
 * Order tracking
 * Delivery cost calculation
 
-### 🎙️ Voice Shopping
+## 🎙️ Voice Shopping
 
 * Voice-enabled product search
-* Voice-enabled checkout workflow
+* English voice support
+* Tanglish voice support
+* Experimental Sinhala voice support
 
-### 🇱🇰 Sri Lankan Language Support
+## 🇱🇰 Multilingual Support
 
-#### English
+* English
+* Tanglish
+* Sinhala
 
+---
+
+# 🚀 How To Use ShopMate LK
+
+## 1️⃣ Search Products
+
+Search naturally using any supported language.
+
+### English
+
+```text
+I need a birthday cake
 ```
-I need a cake
+
+```text
+Show me flower bouquets under LKR 5000
 ```
 
-#### Tanglish
+### Tanglish
 
-```
+```text
 mama cake ekak ganna oni
 ```
 
-#### Sinhala
-
+```text
+mata flower ekak yawanawa
 ```
+
+### Sinhala
+
+```text
 මට කේක් එකක් ඕන
+```
+
+```text
+මල් යවන්න ඕන
+```
+
+---
+
+## 2️⃣ Voice Shopping 🎤
+
+Click the microphone icon and speak naturally.
+
+### English
+
+```text
+I need a cake
+```
+
+### Tanglish (recommended)
+
+```text
+mama cake ekak ganna oni
+```
+
+```text
+mata flower ekak yawanawa
+```
+
+### Sinhala
+
+```text
+මට කේක් එකක් ඕන
+```
+
+> ⚠️ Browser speech recognition currently performs best with English and Tanglish. Sinhala accuracy depends on browser support.
+
+---
+
+## 3️⃣ Add Products To Cart
+
+When products appear:
+
+```text
+Click:
+Add To Bag
+```
+
+Features:
+
+* Add multiple products
+* Increase quantities
+* Remove products
+* Clear cart
+* Persistent cart after refresh
+
+---
+
+## 4️⃣ View Cart
+
+Example:
+
+```text
+Blackcherry Velvet Bento Cheesecake × 2
+Blueberry Bliss Bento Cheesecake × 1
+
+Total: LKR 11,960
+```
+
+---
+
+## 5️⃣ Checkout
+
+Simply type:
+
+```text
+checkout
+```
+
+ShopMate LK guides users through the entire order process.
+
+### Example Checkout Flow
+
+```text
+checkout
+yes
+Jaffna
+Kabi
+0766580968
+2026-07-11
+Jaffna Town
+Paran
+Happy Birthday ❤️
+```
+
+The assistant automatically collects:
+
+* Delivery city
+* Recipient
+* Phone number
+* Delivery date
+* Address
+* Gift sender
+* Gift message
+
+---
+
+## 6️⃣ Order Creation
+
+After checkout:
+
+```text
+✓ Order Created
+```
+
+Users receive:
+
+* Order ID
+* Total amount
+* Payment link
+
+Example:
+
+```text
+Order:
+ORD-20260630-EHFU
+
+Total:
+LKR 58,820
+```
+
+---
+
+## 7️⃣ Payment
+
+Click:
+
+```text
+Pay Now
+```
+
+to continue to the official Kapruka checkout page.
+
+---
+
+## 8️⃣ Order Tracking
+
+Track orders using:
+
+```text
+track ORD-20260630-EHFU
 ```
 
 ---
@@ -103,18 +275,18 @@ User
    ↓
 Voice/Text Input
    ↓
-Language Normalization
-   ├── Sinhala
-   ├── Tanglish
+Language Processing
+   ├── Sinhala Normalizer
+   ├── Tanglish Normalizer
    └── English
    ↓
-AI Processing Layer
+AI Recommendation Engine
    ↓
-Kapruka MCP Tools
-   ├── Product Search
-   ├── Delivery Check
-   ├── Order Creation
-   └── Order Tracking
+Kapruka MCP
+       ├── Product Search
+       ├── Delivery Validation
+       ├── Order Creation
+       └── Order Tracking
    ↓
 Checkout Workflow Engine
    ↓
@@ -155,6 +327,46 @@ Payment Link
 
 ---
 
+# 💡 Demo Flow
+
+## Voice + Tanglish
+
+```text
+🎤 mama cake ekak ganna oni
+```
+
+## Add To Cart
+
+```text
+Add To Bag
+```
+
+## Checkout
+
+```text
+checkout
+```
+
+## Gift Order
+
+```text
+Jaffna
+Kabi
+0766580968
+2026-07-11
+Jaffna Town
+Paran
+Happy Birthday ❤️
+```
+
+## Payment
+
+```text
+Pay Now
+```
+
+---
+
 # 🛠️ Tech Stack
 
 ### Frontend
@@ -174,7 +386,7 @@ Payment Link
 * Kapruka MCP Server
 * Model Context Protocol (MCP)
 
-### Features
+### Additional Features
 
 * Web Speech API
 * LocalStorage Persistence
@@ -228,42 +440,6 @@ http://localhost:3000
 
 ---
 
-# 🎥 Demo Scenarios
-
-### Product Discovery
-
-```
-I need a birthday cake.
-```
-
-### Tanglish
-
-```
-mama cake ekak ganna oni
-```
-
-### Sinhala
-
-```
-මට කේක් එකක් ඕන
-```
-
-### Checkout
-
-```
-checkout
-yes
-Jaffna
-Kabi
-0766580968
-2026-07-11
-Jaffna
-Paran
-Happy Birthday ❤️
-```
-
----
-
 # 🏆 Highlights
 
 ✅ Multilingual AI Shopping Assistant
@@ -274,13 +450,25 @@ Happy Birthday ❤️
 
 ✅ Voice Shopping
 
+✅ Multi-Item Cart
+
+✅ Gift Commerce
+
 ✅ Smart Checkout Workflow
 
-✅ Gift Commerce Features
+✅ Payment Integration
 
-✅ AI Product Recommendations
+✅ Order Tracking
 
 ✅ Kapruka MCP Integration
+
+---
+
+# ⚠️ Known Limitations
+
+* Sinhala voice recognition accuracy depends on browser support.
+* Payment processing is completed through Kapruka's external checkout page.
+* Product availability depends on live Kapruka inventory.
 
 ---
 
