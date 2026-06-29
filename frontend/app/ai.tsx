@@ -512,7 +512,21 @@ export const KaprukaAIChat: React.FC = () => {
     }, [orbState]);
 
     return (
-        <div className="relative flex h-[100dvh] w-full flex-col justify-between overflow-hidden font-sans select-none bg-[#0B0F19] p-4 md:p-8 text-slate-200 transition-colors duration-500">
+        <div className="
+    relative
+    flex
+    min-h-screen
+    w-full
+    flex-col
+    font-sans
+    select-none
+    bg-[#0B0F19]
+    p-4
+    md:p-8
+    text-slate-200
+    transition-colors
+    duration-500
+">
             
             {/* Technical Grid Background Overlay */}
             <div 
