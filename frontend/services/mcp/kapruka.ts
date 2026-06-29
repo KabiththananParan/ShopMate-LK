@@ -72,8 +72,36 @@ export async function getProduct(
   return mapKaprukaProduct(rawText);
 }
 
-export async function checkDelivery() {
-  // TODO
+export async function checkDelivery(
+  city: string,
+  productId?: string,
+  deliveryDate?: string
+) {
+  const client = new Client({
+    name: "shopmate-lk",
+    version: "1.0.0",
+  });
+
+  const transport = new StreamableHTTPClientTransport(
+    new URL("https://mcp.kapruka.com/mcp")
+  );
+
+  await client.connect(transport);
+
+  const result = await client.callTool({
+    name: "kapruka_check_delivery",
+    arguments: {
+      params: {
+        city,
+        delivery_date: deliveryDate,
+        product_id: productId,
+      },
+    },
+  });
+
+  console.log(result);
+
+  return result;
 }
 
 export async function createOrder() {
