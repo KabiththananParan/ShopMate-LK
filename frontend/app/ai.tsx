@@ -5,6 +5,13 @@ import type { OrbState } from 'orb-ui';
 
 import type { Product } from "@/types/product";
 
+declare global {
+    interface Window {
+        SpeechRecognition: unknown;
+        webkitSpeechRecognition: unknown;
+    }
+}
+
 // Icons
 const MicIcon = ({ className }: { className?: string }) => (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -142,6 +149,9 @@ type Message = {
 
 export const KaprukaAIChat: React.FC = () => {
     const [inputValue, setInputValue] = useState<string>('');
+
+
+
     const [messages, setMessages] = useState<Message[]>([
         {
             id: 'welcome-message',
@@ -474,6 +484,92 @@ export const KaprukaAIChat: React.FC = () => {
             setLoading(false);
         }
     }
+
+    const startVoiceInput = () => {
+        const SpeechRecognition =
+            (window as Window & {
+                SpeechRecognition?: new () => {
+                    lang: string;
+                    interimResults: boolean;
+                    maxAlternatives: number;
+                    start(): void;
+                    onresult: (
+                        event: {
+                            results: {
+                                transcript: string;
+                            }[][];
+                        }
+                    ) => void;
+                    onerror: () => void;
+                    onend: () => void;
+                };
+
+                webkitSpeechRecognition?: new () => {
+                    lang: string;
+                    interimResults: boolean;
+                    maxAlternatives: number;
+                    start(): void;
+                    onresult: (
+                        event: {
+                            results: {
+                                transcript: string;
+                            }[][];
+                        }
+                    ) => void;
+                    onerror: () => void;
+                    onend: () => void;
+                };
+            }).webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            alert(
+                "Voice recognition is not supported."
+            );
+            return;
+        }
+
+        const recognition =
+            new SpeechRecognition();
+
+        recognition.lang = "en-US";
+
+        recognition.interimResults = false;
+
+        recognition.maxAlternatives = 1;
+
+        setIsListening(true);
+
+        recognition.start();
+
+        recognition.onresult = (
+            event
+        ) => {
+            const transcript =
+                event.results[0][0]
+                    .transcript;
+
+            console.log(
+                "VOICE:",
+                transcript
+            );
+
+            setInputValue(
+                transcript
+            );
+
+            setIsListening(
+                false
+            );
+        };
+
+        recognition.onerror = () => {
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+    };
 
     const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1068,12 +1164,17 @@ export const KaprukaAIChat: React.FC = () => {
                                 <div className="absolute inset-y-0 right-2 flex items-center gap-1.5">
                                     <button
                                         type="button"
-                                        onClick={handleVoiceToggle}
+                                        onClick={startVoiceInput}
                                         disabled={loading}
                                         className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-white/5 hover:text-white disabled:opacity-40"
                                         aria-label="Voice search"
                                     >
-                                        <MicIcon className="h-4.5 w-4.5" />
+                                        <MicIcon
+                                            className={`h-4.5 w-4.5 ${isListening
+                                                ? "text-red-500"
+                                                : ""
+                                                }`}
+                                        />
                                     </button>
                                     <button
                                         type="submit"
@@ -1085,6 +1186,8 @@ export const KaprukaAIChat: React.FC = () => {
                                         <ArrowRightIcon className="h-4 w-4" />
                                     </button>
                                 </div>
+
+
                             </div>
                         </form>
                     </div>
