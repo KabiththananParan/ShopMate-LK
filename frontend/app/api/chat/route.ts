@@ -15,9 +15,10 @@ const groq = new Groq({
 export async function POST(req: Request) {
   try {
     const {
-            message,
-            lastProduct,
-        } = await req.json();
+        message,
+        lastProduct,
+        cart = [],
+    } = await req.json();
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -31,6 +32,46 @@ export async function POST(req: Request) {
     }
 
     const lowerMessage = message.toLowerCase();
+
+
+    if (
+        lowerMessage.includes("show my cart") ||
+        lowerMessage.includes("my cart") ||
+        lowerMessage === "cart" ||
+        lowerMessage.includes("show my cart") ||
+        lowerMessage.includes("my cart")
+    ) {
+        if (cart.length === 0) {
+            return NextResponse.json({
+                reply: "Your cart is empty.",
+                products: [],
+            });
+        }
+
+        const total = cart.reduce(
+            (sum: number, product: any) =>
+                sum + product.price,
+            0
+        );
+
+        const items = cart
+            .map(
+                (product: any) =>
+                    `• ${product.name} — LKR ${product.price}`
+            )
+            .join("\n");
+
+        return NextResponse.json({
+            reply: [
+                      `You have ${cart.length} item(s) in your cart:`,
+                      "",
+                      items,
+                      "",
+                      `Total: LKR ${total.toLocaleString()}`,
+                  ].join("\n"),
+            products: cart,
+        });
+    }
 
     // STEP 8: DELIVERY CHECK
     if (

@@ -156,6 +156,8 @@ export const KaprukaAIChat: React.FC = () => {
     const [orbState, setOrbState] = useState<OrbState>('idle');
     const [orbVolume, setOrbVolume] = useState<number>(0.08);
 
+    const [cart, setCart] = useState<Product[]>([]);
+
     function getLastProduct() {
             const assistantMessages = messages.filter(
                 (m) =>
@@ -231,6 +233,7 @@ export const KaprukaAIChat: React.FC = () => {
                 body: JSON.stringify({
                     message: userPrompt,
                     lastProduct: getLastProduct(),
+                    cart,
                 })
             });
 
@@ -380,6 +383,10 @@ export const KaprukaAIChat: React.FC = () => {
                     <a href="https://www.kapruka.com" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#38BDF8] hidden sm:inline">Main Site</a>
                     <HelpCircleIcon className="h-4 w-4 cursor-pointer hover:text-white" />
                 </div>
+
+                <div className="rounded-full bg-sky-500/20 px-3 py-1 text-sm text-sky-300">
+                    Cart ({cart.length})
+                </div>
             </header>
 
             {/* Main Interactive Work Area Stage */}
@@ -500,7 +507,7 @@ export const KaprukaAIChat: React.FC = () => {
                                         ) : (
                                             <div className="flex flex-col items-start gap-1 max-w-[95%] md:max-w-[90%]">
                                                 <div className="text-left rounded-2xl rounded-tl-sm border border-white/5 bg-[#111827]/70 backdrop-blur-md p-4 shadow-xl w-full">
-                                                    <p className="text-sm md:text-base leading-relaxed text-slate-200">
+                                                    <p className="whitespace-pre-line">
                                                         {message.content}
                                                     </p>
 
@@ -581,8 +588,16 @@ export const KaprukaAIChat: React.FC = () => {
                     <div className="mt-5 flex items-center gap-2.5">
                         <button
                             onClick={() => {
-                                alert(`${product.name} Added!`);
-                            }}
+                                    setCart((prev) => [
+                                        ...prev,
+                                        product,
+                                    ]);
+
+                                    console.log(
+                                        "Cart:",
+                                        [...cart, product]
+                                    );
+                                }}
                             className="flex-1 rounded-xl bg-sky-500 py-2.5 text-xs font-semibold text-white transition-all active:scale-[0.98] hover:bg-sky-600 shadow-md shadow-sky-500/10 text-center"
                         >
                             Add to Bag
