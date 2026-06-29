@@ -151,7 +151,15 @@ export const KaprukaAIChat: React.FC = () => {
 
     const [isListening, setIsListening] = useState<boolean>(false);
     const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-    const [feedback, setFeedback] = useState<Record<string, 'like' | 'dislike'>>({});
+    const [feedback, setFeedback] =
+            useState<
+                Record<
+                    string,
+                    "like" |
+                    "dislike" |
+                    undefined
+                >
+            >({});
     
     const [orbState, setOrbState] = useState<OrbState>('idle');
     const [orbVolume, setOrbVolume] = useState<number>(0.08);
@@ -352,6 +360,7 @@ export const KaprukaAIChat: React.FC = () => {
                 city: "",
                 recipient: "",
                 phone: "",
+                deliveryDate: "",
                 address: "",
                 sender: "",
             });
