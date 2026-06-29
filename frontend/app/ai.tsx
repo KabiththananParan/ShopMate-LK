@@ -170,12 +170,26 @@ export const KaprukaAIChat: React.FC = () => {
         | "complete"
     >("none");
 
+    const [checkoutData, setCheckoutData] =
+    useState({
+        city: "",
+        recipient: "",
+        phone: "",
+    });
+
     useEffect(() => {
         console.log(
             "Checkout Stage Changed:",
             checkoutStage
         );
     }, [checkoutStage]);
+
+    useEffect(() => {
+        console.log(
+            "Checkout Data:",
+            checkoutData
+        );
+    }, [checkoutData]);
 
     function getLastProduct() {
             const assistantMessages = messages.filter(
@@ -276,6 +290,7 @@ export const KaprukaAIChat: React.FC = () => {
                         checkoutPending ||
                         isCheckout,
                     checkoutStage,
+                    checkoutData,
                 }),
             }
         );
@@ -291,6 +306,15 @@ export const KaprukaAIChat: React.FC = () => {
 
             setCheckoutStage(
                 data.nextCheckoutStage
+            );
+        }
+
+        if (data.checkoutData) {
+            setCheckoutData(
+                (prev) => ({
+                    ...prev,
+                    ...data.checkoutData,
+                })
             );
         }
 

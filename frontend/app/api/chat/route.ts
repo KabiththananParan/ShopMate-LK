@@ -20,6 +20,7 @@ export async function POST(req: Request) {
         cart = [],
         checkoutPending = false,
         checkoutStage = "none",
+        checkoutData = {},
     } = await req.json();
 
     if (!message || typeof message !== "string") {
@@ -87,35 +88,47 @@ if (
             "phone",
 
         checkoutData: {
+          ...checkoutData,
             recipient: message,
         },
     });
 }
 
 
+
+
 if (
     checkoutPending &&
     checkoutStage === "phone"
 ) {
+    const finalCheckout = {
+        ...checkoutData,
+        phone: message,
+    };
+
+    console.log(
+        "FINAL CHECKOUT:",
+        finalCheckout
+    );
+
     return NextResponse.json({
         reply:
-            `Phone number "${message}" received.\n\nAll checkout information has been collected. Ready to create the Kapruka order.`,
+            `Checkout completed for ${finalCheckout.recipient}.`,
 
         products: [],
 
         nextCheckoutStage:
             "complete",
 
-        checkoutData: {
-            phone: message,
-        },
+        checkoutData:
+            finalCheckout,
     });
 }
 
 
 
 
-    if (checkoutPending) {
+    if (checkoutPending && checkoutStage === "none") {
     const total = cart.reduce(
         (sum: number, product: any) =>
             sum + product.price,
@@ -157,8 +170,6 @@ if (
 
 
     if (
-        lowerMessage.includes("show my cart") ||
-        lowerMessage.includes("my cart") ||
         lowerMessage === "cart" ||
         lowerMessage.includes("show my cart") ||
         lowerMessage.includes("my cart")
