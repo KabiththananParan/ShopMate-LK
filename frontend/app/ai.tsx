@@ -151,22 +151,22 @@ export const KaprukaAIChat: React.FC = () => {
         }
     ]);
     const [loading, setLoading] = useState(false);
-    
+
     // Checks if the user has actively typed and sent something beyond the greeting bubble
     const hasStartedChat = messages.length > 1;
 
     const [isListening, setIsListening] = useState<boolean>(false);
     const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
     const [feedback, setFeedback] =
-            useState<
-                Record<
-                    string,
-                    "like" |
-                    "dislike" |
-                    undefined
-                >
-            >({});
-    
+        useState<
+            Record<
+                string,
+                "like" |
+                "dislike" |
+                undefined
+            >
+        >({});
+
     const [orbState, setOrbState] = useState<OrbState>('idle');
     const [orbVolume, setOrbVolume] = useState<number>(0.08);
 
@@ -175,34 +175,50 @@ export const KaprukaAIChat: React.FC = () => {
     };
 
     const [cart, setCart] =
-        useState<CartItem[]>([]);
+        useState<CartItem[]>(() => {
+            if (
+                typeof window ===
+                "undefined"
+            ) {
+                return [];
+            }
 
-    
+            const saved =
+                localStorage.getItem(
+                    "shopmate-cart"
+                );
+
+            return saved
+                ? JSON.parse(saved)
+                : [];
+        });
+
+
 
     const [checkoutPending, setCheckoutPending] = useState(false);
 
     const [checkoutStage, setCheckoutStage] =
-    useState<
-        | "none"
-        | "confirm"
-        | "city"
-        | "recipient"
-        | "phone"
-        | "deliveryDate"
-        | "address"
-        | "sender"
-        | "complete"
-    >("none");
+        useState<
+            | "none"
+            | "confirm"
+            | "city"
+            | "recipient"
+            | "phone"
+            | "deliveryDate"
+            | "address"
+            | "sender"
+            | "complete"
+        >("none");
 
     const [checkoutData, setCheckoutData] =
-    useState({
-        city: "",
-        recipient: "",
-        phone: "",
-        deliveryDate: "",
-        address: "",
-        sender: "",
-    });
+        useState({
+            city: "",
+            recipient: "",
+            phone: "",
+            deliveryDate: "",
+            address: "",
+            sender: "",
+        });
 
     useEffect(() => {
         console.log(
@@ -229,20 +245,29 @@ export const KaprukaAIChat: React.FC = () => {
         );
     }, [cart]);
 
-    function getLastProduct() {
-            const assistantMessages = messages.filter(
-                (m) =>
-                    m.role === "assistant" &&
-                    m.currentProduct
-            );
+    useEffect(() => {
+        localStorage.setItem(
+            "shopmate-cart",
+            JSON.stringify(cart)
+        );
+    }, [cart]);
 
-            return assistantMessages.length > 0
-                ? assistantMessages[
-                    assistantMessages.length - 1
-                ].currentProduct
-                : null;
-        }
-    
+
+
+    function getLastProduct() {
+        const assistantMessages = messages.filter(
+            (m) =>
+                m.role === "assistant" &&
+                m.currentProduct
+        );
+
+        return assistantMessages.length > 0
+            ? assistantMessages[
+                assistantMessages.length - 1
+            ].currentProduct
+            : null;
+    }
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const dockWaveBars = [0.28, 0.52, 0.74, 0.42, 0.9, 0.56, 0.36, 0.8, 0.46, 0.66, 0.32, 0.72, 0.5, 0.84, 0.38];
 
@@ -291,142 +316,161 @@ export const KaprukaAIChat: React.FC = () => {
                 content: "Hi 👋 I'm ShopMate LK, your Kapruka AI shopping assistant. How can I help you discover gifts, cakes, or bouquets across Sri Lanka today?",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }
-        ]); 
+        ]);
         setFeedback({});
     };
 
- async function submitToChatAPI(
-    userPrompt: string
-) {
-    setLoading(true);
+    async function submitToChatAPI(
+        userPrompt: string
+    ) {
+        setLoading(true);
 
-    // STEP 13.4
-    const isCheckout =
-        userPrompt.toLowerCase() ===
-        "checkout";
+        // STEP 13.4
+        const isCheckout =
+            userPrompt.toLowerCase() ===
+            "checkout";
 
-    if (isCheckout) {
-        setCheckoutPending(true);
-        setCheckoutStage("confirm");
-    }
+        if (isCheckout) {
+            setCheckoutPending(true);
+            setCheckoutStage("confirm");
+        }
 
-    try {
-        const response = await fetch(
-            "/api/chat",
-            {
-                method: "POST",
-                headers: {
-                    "content-type":
-                        "application/json",
-                },
-                body: JSON.stringify({
-                    message: userPrompt,
-                    lastProduct:
-                        getLastProduct(),
-                    cart,
-                    checkoutPending:
-                        checkoutPending ||
-                        isCheckout,
-                    checkoutStage,
-                    checkoutData,
-                }),
-            }
-        );
+        try {
+            const response = await fetch(
+                "/api/chat",
+                {
+                    method: "POST",
+                    headers: {
+                        "content-type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        message: userPrompt,
+                        lastProduct:
+                            getLastProduct(),
+                        cart,
+                        checkoutPending:
+                            checkoutPending ||
+                            isCheckout,
+                        checkoutStage,
+                        checkoutData,
+                    }),
+                }
+            );
 
-        console.log(
-            "SENDING CART:",
-            cart
-        );
-
-        const data =
-            await response.json();
-
-        if (data.nextCheckoutStage) {
             console.log(
-                "NEXT STAGE:",
-                data.nextCheckoutStage
+                "SENDING CART:",
+                cart
             );
 
-            setCheckoutStage(
-                data.nextCheckoutStage
-            );
+            const data =
+                await response.json();
+
+            if (data.clearCart) {
+                setCart([]);
+            }
+
+            if (
+                data.removeFromCart
+            ) {
+                setCart((prev) =>
+                    prev.filter(
+                        (item) =>
+                            !item.name
+                                .toLowerCase()
+                                .includes(
+                                    data.removeFromCart
+                                )
+                    )
+                );
+            }
+
+            if (data.nextCheckoutStage) {
+                console.log(
+                    "NEXT STAGE:",
+                    data.nextCheckoutStage
+                );
+
+                setCheckoutStage(
+                    data.nextCheckoutStage
+                );
+            }
+
+            if (
+                data.nextCheckoutStage ===
+                "complete"
+            ) {
+                setCart([]);
+
+                setCheckoutPending(false);
+
+                setCheckoutStage("none");
+
+                setCheckoutData({
+                    city: "",
+                    recipient: "",
+                    phone: "",
+                    deliveryDate: "",
+                    address: "",
+                    sender: "",
+                });
+            }
+
+            if (data.checkoutData) {
+                setCheckoutData(
+                    (prev) => ({
+                        ...prev,
+                        ...data.checkoutData,
+                    })
+                );
+            }
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    role: "assistant",
+                    content:
+                        data.reply,
+                    timestamp:
+                        new Date().toLocaleTimeString(
+                            [],
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }
+                        ),
+                    products:
+                        data.products,
+                    currentProduct:
+                        data.currentProduct,
+                    order: data.order,
+                },
+            ]);
+        } catch (error) {
+            console.error(error);
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    role: "assistant",
+                    content:
+                        "Sorry, something went wrong. Please check your connection and retry.",
+                    timestamp:
+                        new Date().toLocaleTimeString(
+                            [],
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }
+                        ),
+                },
+            ]);
+        } finally {
+            setLoading(false);
         }
-
-        if (
-            data.nextCheckoutStage ===
-            "complete"
-        ) {
-            setCart([]);
-
-            setCheckoutPending(false);
-
-            setCheckoutStage("none");
-
-            setCheckoutData({
-                city: "",
-                recipient: "",
-                phone: "",
-                deliveryDate: "",
-                address: "",
-                sender: "",
-            });
-        }
-
-        if (data.checkoutData) {
-            setCheckoutData(
-                (prev) => ({
-                    ...prev,
-                    ...data.checkoutData,
-                })
-            );
-        }
-
-        setMessages((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content:
-                    data.reply,
-                timestamp:
-                    new Date().toLocaleTimeString(
-                        [],
-                        {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }
-                    ),
-                products:
-                    data.products,
-                currentProduct:
-                    data.currentProduct,
-                order: data.order,
-            },
-        ]);
-    } catch (error) {
-        console.error(error);
-
-        setMessages((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content:
-                    "Sorry, something went wrong. Please check your connection and retry.",
-                timestamp:
-                    new Date().toLocaleTimeString(
-                        [],
-                        {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }
-                    ),
-            },
-        ]);
-    } finally {
-        setLoading(false);
     }
-}
 
     const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -500,7 +544,7 @@ export const KaprukaAIChat: React.FC = () => {
         if (loading) return;
         const userMessages = messages.filter(m => m.role === 'user');
         if (userMessages.length === 0) return;
-        
+
         const lastUserMessage = userMessages[userMessages.length - 1].content;
         await submitToChatAPI(lastUserMessage);
     };
@@ -534,9 +578,9 @@ export const KaprukaAIChat: React.FC = () => {
     transition-colors
     duration-500
 ">
-            
+
             {/* Technical Grid Background Overlay */}
-            <div 
+            <div
                 className="absolute inset-0 pointer-events-none opacity-10"
                 style={{
                     backgroundImage: `
@@ -549,7 +593,7 @@ export const KaprukaAIChat: React.FC = () => {
 
             {/* Background Glow Ambiance */}
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[60vw] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-[#005CB9]/5 via-[#0EA5E9]/5 to-[#FFC72C]/5 blur-[120px] opacity-60" />
-            
+
             {/* Fixed Header Layout Frame */}
             <header className="z-20 flex w-full max-w-4xl mx-auto items-center justify-between pb-3 border-b border-white/5 shrink-0">
                 <div className="flex items-center gap-2 cursor-pointer" onClick={handleHomeClick}>
@@ -572,7 +616,7 @@ export const KaprukaAIChat: React.FC = () => {
 
             {/* Main Interactive Work Area Stage */}
             <main className="z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden justify-between pt-4 min-h-0">
-                
+
                 {/* CONDITIONAL STATE 1: VOICE INTERACTION INTERFACE */}
                 {isListening ? (
                     <div className="flex flex-col flex-1 items-center justify-center text-center animate-fade-in pb-12">
@@ -580,7 +624,7 @@ export const KaprukaAIChat: React.FC = () => {
                         <p className="text-sm font-bold uppercase tracking-widest text-[#38BDF8] animate-pulse">
                             {orbState === 'listening' ? 'Listening to you...' : 'Kapruka AI is Speaking...'}
                         </p>
-                        
+
                         <div
                             className="voice-orb-stage voice-orb-siri my-8 flex h-60 w-60 items-center justify-center"
                             style={{ '--orb-volume': orbVolume } as React.CSSProperties}
@@ -634,10 +678,10 @@ export const KaprukaAIChat: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    
+
                     /* CONDITIONAL STATE 2: TEXT CHAT STREAM LAYOUT */
                     <div className="flex flex-col flex-1 overflow-hidden justify-between min-h-0">
-                        
+
                         {/* Title Branding Header */}
                         {!hasStartedChat && (
                             <div className="mb-3 animate-fade-in shrink-0">
@@ -674,16 +718,15 @@ export const KaprukaAIChat: React.FC = () => {
                                 {messages.map((message) => (
                                     <div
                                         key={message.id}
-                                        className={`flex w-full ${
-                                            message.role === 'user' ? 'justify-end' : 'justify-start'
-                                        }`}
+                                        className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'
+                                            }`}
                                     >
                                         {message.role === 'user' ? (
                                             <div className="flex flex-col items-end gap-1 max-w-[80%] md:max-w-[70%]">
                                                 <div className="rounded-2xl rounded-tr-sm bg-[#1E293B] border border-white/5 px-4 py-2.5 text-sm md:text-base leading-relaxed text-slate-100 shadow-md">
                                                     {message.content}
                                                 </div>
-                                                
+
                                                 <span className="text-[10px] text-slate-500 tracking-wide px-1">{message.timestamp}</span>
                                             </div>
                                         ) : (
@@ -731,135 +774,185 @@ export const KaprukaAIChat: React.FC = () => {
                                                     )}
 
 
-{message.products && message.products.length > 0 && (
-    /* Main Layout Grid split into Left (Info) and Right (Cards) */
-    <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
-        
-        {/* LEFT SIDE: Dynamic Product Descriptions & Context List */}
-        <div className="lg:col-span-4 space-y-4">
-            {/* Context Header */}
-            <div className="rounded-xl border border-white/5 bg-slate-900/40 p-4 text-slate-300 text-sm backdrop-blur-sm">
-                <p className="font-medium text-white mb-1">💡 Product Overview</p>
-                <p className="text-xs text-slate-400">
-                    Review the product details below. You can quickly add items to your bag from the right panel.
-                </p>
-            </div>
+                                                    {message.products && message.products.length > 0 && (
+                                                        /* Main Layout Grid split into Left (Info) and Right (Cards) */
+                                                        <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
 
-            {/* Rendered List of Descriptions */}
-            <div className="space-y-3">
-                {message.products.map((product) => (
-                    <div 
-                        key={`desc-${product.id}`} 
-                        className="rounded-xl border border-white/10 bg-slate-900/30 p-3.5 transition hover:bg-slate-900/50"
-                    >
-                        <h5 className="text-xs font-semibold text-sky-400 uppercase tracking-wider mb-1">
-                            {product.name}
-                        </h5>
-                        {product.description ? (
-                            <p className="text-sm text-slate-300 leading-relaxed">
-                                {product.description}
-                            </p>
-                        ) : (
-                            <p className="text-xs italic text-slate-500">
-                                No additional description available.
-                            </p>
-                        )}
-                    </div>
-                ))}
-            </div>
-        </div>
+                                                            {/* LEFT SIDE: Dynamic Product Descriptions & Context List */}
+                                                            <div className="lg:col-span-4 space-y-4">
+                                                                {/* Context Header */}
+                                                                <div className="rounded-xl border border-white/5 bg-slate-900/40 p-4 text-slate-300 text-sm backdrop-blur-sm">
+                                                                    <p className="font-medium text-white mb-1">💡 Product Overview</p>
+                                                                    <p className="text-xs text-slate-400">
+                                                                        Review the product details below. You can quickly add items to your bag from the right panel.
+                                                                    </p>
+                                                                </div>
 
-        {/* RIGHT SIDE: Cleaner, Card-focused Products Grid */}
-        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {message.products.map((product) => (
-                <div
-                    key={product.id}
-                    className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-xl transition-all duration-200 hover:border-white/20"
-                >
-                    <div>
-                        {/* Clean Product Image */}
-                        {product.image && (
-                            <div className="overflow-hidden rounded-xl bg-slate-950 mb-3.5">
-                                <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    className="h-44 w-full object-cover transition-transform duration-300 hover:scale-105"
-                                />
-                            </div>
-                        )}
+                                                                {/* Rendered List of Descriptions */}
+                                                                <div className="space-y-3">
+                                                                    {message.products.map((product) => (
+                                                                        <div
+                                                                            key={`desc-${product.id}`}
+                                                                            className="rounded-xl border border-white/10 bg-slate-900/30 p-3.5 transition hover:bg-slate-900/50"
+                                                                        >
+                                                                            <h5 className="text-xs font-semibold text-sky-400 uppercase tracking-wider mb-1">
+                                                                                {product.name}
+                                                                            </h5>
+                                                                            {product.description ? (
+                                                                                <p className="text-sm text-slate-300 leading-relaxed">
+                                                                                    {product.description}
+                                                                                </p>
+                                                                            ) : (
+                                                                                <p className="text-xs italic text-slate-500">
+                                                                                    No additional description available.
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
 
-                        {/* Product Core Info */}
-                        <h4 className="font-semibold text-base text-white tracking-tight line-clamp-1">
-                            {product.name}
-                        </h4>
+                                                            {/* RIGHT SIDE: Cleaner, Card-focused Products Grid */}
+                                                            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                {message.products.map((product) => (
+                                                                    <div
+                                                                        key={product.id}
+                                                                        className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-xl transition-all duration-200 hover:border-white/20"
+                                                                    >
+                                                                        <div>
+                                                                            {/* Clean Product Image */}
+                                                                            {product.image && (
+                                                                                <div className="overflow-hidden rounded-xl bg-slate-950 mb-3.5">
+                                                                                    <img
+                                                                                        src={product.image}
+                                                                                        alt={product.name}
+                                                                                        className="h-44 w-full object-cover transition-transform duration-300 hover:scale-105"
+                                                                                    />
+                                                                                </div>
+                                                                            )}
 
-                        <div className="mt-1.5 flex items-baseline justify-between">
-                            <p className="text-base font-bold text-sky-400">
-                                LKR {product.price.toLocaleString()}
-                            </p>
-                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
-                                Stock: {product.stock}
-                            </span>
-                        </div>
-                    </div>
+                                                                            {/* Product Core Info */}
+                                                                            <h4 className="font-semibold text-base text-white tracking-tight line-clamp-1">
+                                                                                {product.name}
+                                                                            </h4>
 
-                    {/* Action Row */}
-                    <div className="mt-5 flex items-center gap-2.5">
-                        <button
-                            onClick={() => {
-                                setCart((prev) => {
-                                    const existing =
-                                        prev.find(
-                                            (item) =>
-                                                item.id ===
-                                                product.id
-                                        );
+                                                                            <div className="mt-1.5 flex items-baseline justify-between">
+                                                                                <p className="text-base font-bold text-sky-400">
+                                                                                    LKR {product.price.toLocaleString()}
+                                                                                </p>
+                                                                                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
+                                                                                    Stock: {product.stock}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
 
-                                    if (existing) {
-                                        return prev.map(
-                                            (item) =>
-                                                item.id ===
-                                                product.id
-                                                    ? {
-                                                        ...item,
-                                                        quantity:
-                                                            item.quantity +
-                                                            1,
-                                                    }
-                                                    : item
-                                        );
-                                    }
+                                                                        {/* Action Row */}
+                                                                        <div className="mt-5 flex items-center gap-2.5">
+                                                                            <div className="flex items-center gap-2">
 
-                                    return [
-                                        ...prev,
-                                        {
-                                            ...product,
-                                            quantity: 1,
-                                        },
-                                    ];
-                                });
-                            }}
-                                                        className="flex-1 rounded-xl bg-sky-500 py-2.5 text-xs font-semibold text-white transition-all active:scale-[0.98] hover:bg-sky-600 shadow-md shadow-sky-500/10 text-center"
-                        >
-                            Add to Bag
-                        </button>
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setCart((prev) =>
+                                                                                            prev.map(
+                                                                                                (item) =>
+                                                                                                    item.id ===
+                                                                                                        product.id
+                                                                                                        ? {
+                                                                                                            ...item,
+                                                                                                            quantity:
+                                                                                                                Math.max(
+                                                                                                                    1,
+                                                                                                                    item.quantity - 1
+                                                                                                                ),
+                                                                                                        }
+                                                                                                        : item
+                                                                                            )
+                                                                                        );
+                                                                                    }}
+                                                                                    className="
+            rounded-lg
+            bg-slate-700
+            px-3
+            py-2
+            text-white
+        "
+                                                                                >
+                                                                                    -
+                                                                                </button>
 
-                        <a
-                            href={product.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/5 whitespace-nowrap"
-                        >
-                            Details
-                        </a>
-                    </div>
-                </div>
-            ))}
-        </div>
+                                                                                <span className="min-w-[2rem] text-center text-sm font-semibold text-white">
+                                                                                    {
+                                                                                        cart.find(
+                                                                                            (item) =>
+                                                                                                item.id ===
+                                                                                                product.id
+                                                                                        )?.quantity ?? 0
+                                                                                    }
+                                                                                </span>
 
-    </div>
-)}
-                                                    
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setCart((prev) => {
+                                                                                            const existing =
+                                                                                                prev.find(
+                                                                                                    (item) =>
+                                                                                                        item.id ===
+                                                                                                        product.id
+                                                                                                );
+
+                                                                                            if (existing) {
+                                                                                                return prev.map(
+                                                                                                    (item) =>
+                                                                                                        item.id ===
+                                                                                                            product.id
+                                                                                                            ? {
+                                                                                                                ...item,
+                                                                                                                quantity:
+                                                                                                                    item.quantity +
+                                                                                                                    1,
+                                                                                                            }
+                                                                                                            : item
+                                                                                                );
+                                                                                            }
+
+                                                                                            return [
+                                                                                                ...prev,
+                                                                                                {
+                                                                                                    ...product,
+                                                                                                    quantity: 1,
+                                                                                                },
+                                                                                            ];
+                                                                                        });
+                                                                                    }}
+                                                                                    className="
+            rounded-lg
+            bg-sky-500
+            px-4
+            py-2
+            text-white
+        "
+                                                                                >
+                                                                                    +
+                                                                                </button>
+
+                                                                            </div>
+
+                                                                            <a
+                                                                                href={product.url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/5 whitespace-nowrap"
+                                                                            >
+                                                                                Details
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+
+                                                        </div>
+                                                    )}
+
                                                     {/* Actions Toolbar Interface Elements Box */}
                                                     <div className="mt-3.5 flex items-center gap-3.5 text-white/40 border-t border-white/5 pt-2.5">
                                                         <button
@@ -878,9 +971,8 @@ export const KaprukaAIChat: React.FC = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleFeedback(message.id, 'like')}
-                                                            className={`flex h-4 w-4 items-center justify-center rounded transition ${
-                                                                feedback[message.id] === 'like' ? 'text-emerald-400' : 'text-white/50 hover:text-emerald-400'
-                                                            }`}
+                                                            className={`flex h-4 w-4 items-center justify-center rounded transition ${feedback[message.id] === 'like' ? 'text-emerald-400' : 'text-white/50 hover:text-emerald-400'
+                                                                }`}
                                                             title="Good response"
                                                         >
                                                             <ThumbsUpIcon className="h-3.5 w-3.5" />
@@ -889,9 +981,8 @@ export const KaprukaAIChat: React.FC = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleFeedback(message.id, 'dislike')}
-                                                            className={`flex h-4 w-4 items-center justify-center rounded transition ${
-                                                                feedback[message.id] === 'dislike' ? 'text-rose-400' : 'text-white/50 hover:text-rose-400'
-                                                            }`}
+                                                            className={`flex h-4 w-4 items-center justify-center rounded transition ${feedback[message.id] === 'dislike' ? 'text-rose-400' : 'text-white/50 hover:text-rose-400'
+                                                                }`}
                                                             title="Bad response"
                                                         >
                                                             <ThumbsDownIcon className="h-3.5 w-3.5" />
@@ -941,7 +1032,7 @@ export const KaprukaAIChat: React.FC = () => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div ref={messagesEndRef} />
                             </div>
                         </div>
