@@ -131,6 +131,7 @@ type Message = {
     timestamp: string;
 
     products?: Product[];
+    currentProduct?: Product | null;
 };
 
 export const KaprukaAIChat: React.FC = () => {
@@ -154,6 +155,20 @@ export const KaprukaAIChat: React.FC = () => {
     
     const [orbState, setOrbState] = useState<OrbState>('idle');
     const [orbVolume, setOrbVolume] = useState<number>(0.08);
+
+    function getLastProduct() {
+            const assistantMessages = messages.filter(
+                (m) =>
+                    m.role === "assistant" &&
+                    m.currentProduct
+            );
+
+            return assistantMessages.length > 0
+                ? assistantMessages[
+                    assistantMessages.length - 1
+                ].currentProduct
+                : null;
+        }
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const dockWaveBars = [0.28, 0.52, 0.74, 0.42, 0.9, 0.56, 0.36, 0.8, 0.46, 0.66, 0.32, 0.72, 0.5, 0.84, 0.38];
@@ -213,10 +228,10 @@ export const KaprukaAIChat: React.FC = () => {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message: userPrompt,
-                    history: messages,
-                 })
+                    lastProduct: getLastProduct(),
+                })
             });
 
             const data = await response.json();
@@ -224,14 +239,18 @@ export const KaprukaAIChat: React.FC = () => {
             setMessages((prev) => [
                 ...prev,
                 {
-                    id: crypto.randomUUID(),
-                    role: 'assistant',
-                    content: data.reply,
-                    products: data.products ?? [],
-                    timestamp: new Date().toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })
+                     id: crypto.randomUUID(),
+                        role: "assistant",
+                        content: data.reply,
+                        timestamp: new Date().toLocaleTimeString(
+                            [],
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }
+                        ),
+                        products: data.products,
+                        currentProduct: data.currentProduct,
                 },
             ]);
         } catch (error) {
@@ -253,6 +272,10 @@ export const KaprukaAIChat: React.FC = () => {
     const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const userMessage = inputValue.trim();
+        console.log(
+            "Last Product:",
+            getLastProduct()
+        );
         if (!userMessage || loading) return;
 
         setMessages((prev) => [
