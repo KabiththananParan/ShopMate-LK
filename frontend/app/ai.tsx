@@ -132,6 +132,12 @@ type Message = {
 
     products?: Product[];
     currentProduct?: Product | null;
+
+    order?: {
+        id: string;
+        total: string;
+        checkoutUrl: string;
+    };
 };
 
 export const KaprukaAIChat: React.FC = () => {
@@ -394,6 +400,7 @@ export const KaprukaAIChat: React.FC = () => {
                     data.products,
                 currentProduct:
                     data.currentProduct,
+                order: data.order,
             },
         ]);
     } catch (error) {
@@ -447,7 +454,7 @@ export const KaprukaAIChat: React.FC = () => {
                 id: crypto.randomUUID(),
                 role: 'user',
                 content: userMessage,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
         ]);
 
@@ -676,6 +683,7 @@ export const KaprukaAIChat: React.FC = () => {
                                                 <div className="rounded-2xl rounded-tr-sm bg-[#1E293B] border border-white/5 px-4 py-2.5 text-sm md:text-base leading-relaxed text-slate-100 shadow-md">
                                                     {message.content}
                                                 </div>
+                                                
                                                 <span className="text-[10px] text-slate-500 tracking-wide px-1">{message.timestamp}</span>
                                             </div>
                                         ) : (
@@ -684,6 +692,43 @@ export const KaprukaAIChat: React.FC = () => {
                                                     <p className="whitespace-pre-line">
                                                         {message.content}
                                                     </p>
+
+                                                    {message.order && (
+                                                        <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/10 p-4">
+
+                                                            <div className="font-semibold text-green-300">
+                                                                Order Created ✓
+                                                            </div>
+
+                                                            <div className="mt-2 text-sm text-white">
+                                                                {message.order.id}
+                                                            </div>
+
+                                                            <div className="mt-1 text-sm text-slate-300">
+                                                                Total: LKR {message.order.total}
+                                                            </div>
+
+                                                            <a
+                                                                href={message.order.checkoutUrl}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="
+                                                                    mt-4
+                                                                    inline-flex
+                                                                    rounded-lg
+                                                                    bg-sky-500
+                                                                    px-4
+                                                                    py-2
+                                                                    font-medium
+                                                                    text-white
+                                                                    hover:bg-sky-600
+                                                                "
+                                                            >
+                                                                Pay Now
+                                                            </a>
+
+                                                        </div>
+                                                    )}
 
 
 {message.products && message.products.length > 0 && (
