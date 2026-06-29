@@ -208,6 +208,7 @@ export const KaprukaAIChat: React.FC = () => {
             | "address"
             | "sender"
             | "complete"
+            | "gift"
         >("none");
 
     const [checkoutData, setCheckoutData] =
@@ -218,6 +219,7 @@ export const KaprukaAIChat: React.FC = () => {
             deliveryDate: "",
             address: "",
             sender: "",
+            giftMessage: "",
         });
 
     useEffect(() => {

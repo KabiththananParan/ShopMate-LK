@@ -175,15 +175,47 @@ export async function POST(req: Request) {
       checkoutPending &&
       checkoutStage === "sender"
     ) {
+      return NextResponse.json({
+        reply:
+          `Gift sender set to "${message}".\n\n` +
+          `Would you like to include a gift message?\n` +
+          `(Type your message or type "no")`,
+
+        products: [],
+
+        nextCheckoutStage:
+          "gift",
+
+        checkoutData: {
+          ...checkoutData,
+          sender: message,
+        },
+      });
+    }
+
+
+    if (
+      checkoutPending &&
+      checkoutStage === "gift"
+    ) {
       const finalCheckout = {
         ...checkoutData,
-        sender: message,
+        giftMessage:
+          lowerMessage === "no"
+            ? ""
+            : message,
       };
 
       console.log(
         "FINAL CHECKOUT:",
         finalCheckout
       );
+
+     
+
+      // keep all your existing
+      // orderId / total /
+      // checkoutUrl parsing code here
 
       const order = await createOrder(
         cart,
@@ -210,15 +242,6 @@ export async function POST(req: Request) {
           /https:\/\/[^\s)]+/
         )?.[0] ?? "";
 
-      console.log(
-        "ORDER:",
-        JSON.stringify(
-          order,
-          null,
-          2
-        )
-      );
-
       return NextResponse.json({
         reply:
           `Order created successfully!\n\n` +
@@ -240,9 +263,7 @@ export async function POST(req: Request) {
           checkoutUrl,
         },
       });
-
     }
-
 
 
 
