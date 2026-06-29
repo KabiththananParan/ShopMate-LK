@@ -106,118 +106,160 @@ export async function checkDelivery(
 
 
 type CartItem = Product & {
-    quantity: number;
+  quantity: number;
 };
 
 export async function createOrder(
-    cart: CartItem[],
-    checkoutData: {
-        city: string;
-        recipient: string;
-        phone: string;
-        deliveryDate: string;
-        address: string;
-        sender: string;
-    }
+  cart: CartItem[],
+  checkoutData: {
+    city: string;
+    recipient: string;
+    phone: string;
+    deliveryDate: string;
+    address: string;
+    sender: string;
+  }
 ) {
-    const client = new Client({
-        name: "shopmate-lk",
-        version: "1.0.0",
-    });
+  const client = new Client({
+    name: "shopmate-lk",
+    version: "1.0.0",
+  });
 
-    const transport =
-        new StreamableHTTPClientTransport(
-            new URL(
-                "https://mcp.kapruka.com/mcp"
-            )
-        );
-
-    await client.connect(transport);
-
-    const result =
-        await client.callTool({
-            name: "kapruka_create_order",
-
-            arguments: {
-                params: {
-                    cart: cart.map(
-                      (item) => ({
-                          product_id:
-                              item.id,
-
-                          quantity:
-                              item.quantity,
-                      })
-                  ),
-
-                    recipient: {
-                        name:
-                            checkoutData.recipient,
-                        phone:
-                            checkoutData.phone,
-                    },
-
-                    delivery: {
-                        address:
-                            checkoutData.address,
-
-                        city:
-                            checkoutData.city,
-
-                        date:
-                            checkoutData.deliveryDate,
-                    },
-
-                    sender: {
-                        name:
-                            checkoutData.sender,
-                        anonymous: false,
-                    },
-
-                    currency: "LKR",
-                },
-            },
-        });
-
-    console.log(
-        "ORDER RESULT:",
-        result
+  const transport =
+    new StreamableHTTPClientTransport(
+      new URL(
+        "https://mcp.kapruka.com/mcp"
+      )
     );
 
-    return result;
+  await client.connect(transport);
+
+  const result =
+    await client.callTool({
+      name: "kapruka_create_order",
+
+      arguments: {
+        params: {
+          cart: cart.map(
+            (item) => ({
+              product_id:
+                item.id,
+
+              quantity:
+                item.quantity,
+            })
+          ),
+
+          recipient: {
+            name:
+              checkoutData.recipient,
+            phone:
+              checkoutData.phone,
+          },
+
+          delivery: {
+            address:
+              checkoutData.address,
+
+            city:
+              checkoutData.city,
+
+            date:
+              checkoutData.deliveryDate,
+          },
+
+          sender: {
+            name:
+              checkoutData.sender,
+            anonymous: false,
+          },
+
+          currency: "LKR",
+        },
+      },
+    });
+
+  console.log(
+    "ORDER RESULT:",
+    result
+  );
+
+  return result;
 }
 
 export async function trackOrder(
-    orderId: string
+  orderId: string
 ) {
-    const client = new Client({
-        name: "shopmate-lk",
-        version: "1.0.0",
-    });
+  const client = new Client({
+    name: "shopmate-lk",
+    version: "1.0.0",
+  });
 
-    const transport =
-        new StreamableHTTPClientTransport(
-            new URL(
-                "https://mcp.kapruka.com/mcp"
-            )
-        );
-
-    await client.connect(
-        transport
+  const transport =
+    new StreamableHTTPClientTransport(
+      new URL(
+        "https://mcp.kapruka.com/mcp"
+      )
     );
 
-    const result =
-        await client.callTool({
-            name:
-                "kapruka_track_order",
+  await client.connect(
+    transport
+  );
 
-            arguments: {
-                params: {
-                    order_number:
-                        orderId,
-                },
-            },
-        });
+  const result =
+    await client.callTool({
+      name:
+        "kapruka_track_order",
 
-    return result;
+      arguments: {
+        params: {
+          order_number:
+            orderId,
+        },
+      },
+    });
+
+  return result;
+}
+
+
+export async function listCategories() {
+  const client = new Client({
+    name: "shopmate-lk",
+    version: "1.0.0",
+  });
+
+  const transport =
+    new StreamableHTTPClientTransport(
+      new URL(
+        "https://mcp.kapruka.com/mcp"
+      )
+    );
+
+  await client.connect(
+    transport
+  );
+
+  const result =
+    await client.callTool({
+      name:
+        "kapruka_list_categories",
+
+      arguments: {
+        params: {
+          depth: 1,
+        },
+      },
+    });
+
+  console.log(
+    "RAW CATEGORIES:",
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  return result;
 }

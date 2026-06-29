@@ -6,6 +6,7 @@ import {
   checkDelivery,
   createOrder,
   trackOrder,
+  listCategories,
 } from "@/services/mcp/kapruka";
 
 import { normalizeCity } from "@/services/mcp/cityMapper";
@@ -313,6 +314,79 @@ export async function POST(req: Request) {
           `LKR ${total.toLocaleString()}.\n\n` +
           `Proceed with checkout? Reply "yes" to continue.`,
         products: cart,
+      });
+    }
+
+
+    if (
+      lowerMessage.includes("categories") ||
+      lowerMessage.includes("show categories") ||
+      lowerMessage.includes("browse categories")
+    ) {
+      const categories =
+        await listCategories();
+
+      const raw =
+        (
+          categories.structuredContent as {
+            result?: string;
+          }
+        )?.result ?? "";
+
+      const matches =
+        [...raw.matchAll(
+          /\[([^\]]+)\]/g
+        )];
+
+      const categoryNames =
+        matches
+          .map(
+            (m) => m[1]
+          )
+          .slice(0, 20);
+
+      return NextResponse.json({
+        reply:
+          `Available categories:\n\n` +
+          categoryNames
+            .map(
+              (c) =>
+                `• ${c}`
+            )
+            .join("\n"),
+
+        products: [],
+      });
+    }
+
+
+    if (
+      lowerMessage.startsWith(
+        "browse "
+      )
+    ) {
+      const category =
+        lowerMessage
+          .replace(
+            "browse ",
+            ""
+          )
+          .trim();
+
+      const products =
+        await searchProducts(
+          category
+        );
+
+      return NextResponse.json({
+        reply:
+          `I found some products in the "${category}" category. Here are my recommendations.`,
+
+        products,
+
+        currentProduct:
+          products[0] ??
+          null,
       });
     }
 
