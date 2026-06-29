@@ -415,6 +415,7 @@ export const KaprukaAIChat: React.FC = () => {
                     deliveryDate: "",
                     address: "",
                     sender: "",
+                    giftMessage: "",
                 });
             }
 

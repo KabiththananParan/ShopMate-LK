@@ -11,6 +11,9 @@ import {
 import { normalizeCity } from "@/services/mcp/cityMapper";
 import { Product } from "@/types/product";
 
+import { normalizeTanglish }
+  from "@/services/language/tanglish";
+
 type MCPResult = {
   result?: string;
 };
@@ -45,7 +48,19 @@ export async function POST(req: Request) {
       );
     }
 
-    const lowerMessage = message.toLowerCase();
+    const normalizedMessage =
+      normalizeTanglish(
+        message
+      );
+
+    console.log(
+      "TANGLISH:",
+      normalizedMessage
+    );
+
+    const lowerMessage =
+      normalizedMessage
+        .toLowerCase();
 
     if (
       checkoutPending &&
@@ -211,7 +226,7 @@ export async function POST(req: Request) {
         finalCheckout
       );
 
-     
+
 
       // keep all your existing
       // orderId / total /
@@ -486,7 +501,10 @@ export async function POST(req: Request) {
     }
 
     // NORMAL PRODUCT SEARCH
-    const products = await searchProducts(message);
+    const products =
+      await searchProducts(
+        normalizedMessage
+      );
 
     const chatCompletion =
       await groq.chat.completions.create({
@@ -499,16 +517,18 @@ You are ShopMate LK, a Sri Lankan AI shopping assistant.
 
 Rules:
 - Keep responses under 80 words.
-- Mention only products provided.
-- Never invent products.
-- Give a brief recommendation.
+- Mention ONLY the products provided.
+- Never invent products, brands, categories, or search terms.
+- Never mention or explain the user's original query.
+- Recommend the best product based only on price and availability.
+- If multiple products exist, compare them briefly.
 - End with "You can view the products below."
 `,
           },
           {
             role: "user",
             content: `
-User searched for: ${message}
+User searched for: ${normalizedMessage}
 
 Products found:
 
@@ -519,7 +539,9 @@ ${products
                 )
                 .join("\n")}
 
-Explain these products briefly and help the user choose.
+Describe ONLY the products listed above.
+Do not mention the search query.
+Help the user choose one product.
 `,
           },
         ],
