@@ -104,12 +104,18 @@ export async function checkDelivery(
   return result;
 }
 
+
+type CartItem = Product & {
+    quantity: number;
+};
+
 export async function createOrder(
-    cart: Product[],
+    cart: CartItem[],
     checkoutData: {
         city: string;
         recipient: string;
         phone: string;
+        deliveryDate: string;
         address: string;
         sender: string;
     }
@@ -135,12 +141,14 @@ export async function createOrder(
             arguments: {
                 params: {
                     cart: cart.map(
-                        (item) => ({
-                            product_id:
-                                item.id,
-                            quantity: 1,
-                        })
-                    ),
+                      (item) => ({
+                          product_id:
+                              item.id,
+
+                          quantity:
+                              item.quantity,
+                      })
+                  ),
 
                     recipient: {
                         name:
@@ -152,13 +160,12 @@ export async function createOrder(
                     delivery: {
                         address:
                             checkoutData.address,
+
                         city:
                             checkoutData.city,
 
                         date:
-                            new Date()
-                                .toISOString()
-                                .split("T")[0],
+                            checkoutData.deliveryDate,
                     },
 
                     sender: {
@@ -180,6 +187,37 @@ export async function createOrder(
     return result;
 }
 
-export async function trackOrder() {
-  // TODO
+export async function trackOrder(
+    orderId: string
+) {
+    const client = new Client({
+        name: "shopmate-lk",
+        version: "1.0.0",
+    });
+
+    const transport =
+        new StreamableHTTPClientTransport(
+            new URL(
+                "https://mcp.kapruka.com/mcp"
+            )
+        );
+
+    await client.connect(
+        transport
+    );
+
+    const result =
+        await client.callTool({
+            name:
+                "kapruka_track_order",
+
+            arguments: {
+                params: {
+                    order_number:
+                        orderId,
+                },
+            },
+        });
+
+    return result;
 }

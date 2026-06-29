@@ -156,7 +156,14 @@ export const KaprukaAIChat: React.FC = () => {
     const [orbState, setOrbState] = useState<OrbState>('idle');
     const [orbVolume, setOrbVolume] = useState<number>(0.08);
 
-    const [cart, setCart] = useState<Product[]>([]);
+    type CartItem = Product & {
+        quantity: number;
+    };
+
+    const [cart, setCart] =
+        useState<CartItem[]>([]);
+
+    
 
     const [checkoutPending, setCheckoutPending] = useState(false);
 
@@ -167,6 +174,7 @@ export const KaprukaAIChat: React.FC = () => {
         | "city"
         | "recipient"
         | "phone"
+        | "deliveryDate"
         | "address"
         | "sender"
         | "complete"
@@ -177,6 +185,7 @@ export const KaprukaAIChat: React.FC = () => {
         city: "",
         recipient: "",
         phone: "",
+        deliveryDate: "",
         address: "",
         sender: "",
     });
@@ -194,6 +203,17 @@ export const KaprukaAIChat: React.FC = () => {
             checkoutData
         );
     }, [checkoutData]);
+
+    useEffect(() => {
+        console.log(
+            "Cart JSON:",
+            JSON.stringify(
+                cart,
+                null,
+                2
+            )
+        );
+    }, [cart]);
 
     function getLastProduct() {
             const assistantMessages = messages.filter(
@@ -316,6 +336,25 @@ export const KaprukaAIChat: React.FC = () => {
             setCheckoutStage(
                 data.nextCheckoutStage
             );
+        }
+
+        if (
+            data.nextCheckoutStage ===
+            "complete"
+        ) {
+            setCart([]);
+
+            setCheckoutPending(false);
+
+            setCheckoutStage("none");
+
+            setCheckoutData({
+                city: "",
+                recipient: "",
+                phone: "",
+                address: "",
+                sender: "",
+            });
         }
 
         if (data.checkoutData) {
@@ -700,17 +739,39 @@ export const KaprukaAIChat: React.FC = () => {
                     <div className="mt-5 flex items-center gap-2.5">
                         <button
                             onClick={() => {
-                                    setCart((prev) => [
-                                        ...prev,
-                                        product,
-                                    ]);
+                                setCart((prev) => {
+                                    const existing =
+                                        prev.find(
+                                            (item) =>
+                                                item.id ===
+                                                product.id
+                                        );
 
-                                    console.log(
-                                        "Cart:",
-                                        [...cart, product]
-                                    );
-                                }}
-                            className="flex-1 rounded-xl bg-sky-500 py-2.5 text-xs font-semibold text-white transition-all active:scale-[0.98] hover:bg-sky-600 shadow-md shadow-sky-500/10 text-center"
+                                    if (existing) {
+                                        return prev.map(
+                                            (item) =>
+                                                item.id ===
+                                                product.id
+                                                    ? {
+                                                        ...item,
+                                                        quantity:
+                                                            item.quantity +
+                                                            1,
+                                                    }
+                                                    : item
+                                        );
+                                    }
+
+                                    return [
+                                        ...prev,
+                                        {
+                                            ...product,
+                                            quantity: 1,
+                                        },
+                                    ];
+                                });
+                            }}
+                                                        className="flex-1 rounded-xl bg-sky-500 py-2.5 text-xs font-semibold text-white transition-all active:scale-[0.98] hover:bg-sky-600 shadow-md shadow-sky-500/10 text-center"
                         >
                             Add to Bag
                         </button>

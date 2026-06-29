@@ -5,9 +5,19 @@ import {
   searchProducts,
   checkDelivery,
   createOrder,
+  trackOrder,
 } from "@/services/mcp/kapruka";
 
 import { normalizeCity } from "@/services/mcp/cityMapper";
+import { Product } from "@/types/product";
+
+type MCPResult = {
+    result?: string;
+};
+
+type CartItem = Product & {
+    quantity: number;
+};
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -104,7 +114,27 @@ if (
 ) {
     return NextResponse.json({
         reply:
-            `Phone number "${message}" saved.\n\nPlease provide the delivery address.`,
+            `Phone number saved.\n\nWhen would you like the delivery? (Example: 2026-07-01)`,
+
+        products: [],
+
+        nextCheckoutStage:
+            "deliveryDate",
+
+        checkoutData: {
+            ...checkoutData,
+            phone: message,
+        },
+    });
+}
+
+if (
+    checkoutPending &&
+    checkoutStage === "deliveryDate"
+) {
+    return NextResponse.json({
+        reply:
+            `Delivery date set to "${message}".\n\nPlease provide the delivery address.`,
 
         products: [],
 
@@ -113,10 +143,12 @@ if (
 
         checkoutData: {
             ...checkoutData,
-            phone: message,
+            deliveryDate: message,
         },
     });
 }
+
+
 
 if (
     checkoutPending &&
@@ -158,14 +190,41 @@ if (
         finalCheckout
     );
 
+    const orderText =
+    (
+        order.structuredContent as MCPResult
+    )?.result ?? "";
+
+    const orderId =
+        orderText.match(
+            /ORD-\d+-[A-Z0-9]+/
+        )?.[0] ?? "";
+
+    const total =
+        orderText.match(
+            /Grand total:\*\* LKR ([\d,]+)/
+        )?.[1] ?? "";
+
+    const checkoutUrl =
+        orderText.match(
+            /https:\/\/[^\s)]+/
+        )?.[0] ?? "";
+
     console.log(
         "ORDER:",
-        order
+        JSON.stringify(
+            order,
+            null,
+            2
+        )
     );
 
     return NextResponse.json({
         reply:
-            "Order created successfully! Please complete payment using the checkout link.",
+            `Order created successfully!\n\n` +
+            `Order: ${orderId}\n` +
+            `Total: LKR ${total}\n\n` +
+            `Click the payment link below.`,
 
         products: [],
 
@@ -175,8 +234,13 @@ if (
         checkoutData:
             finalCheckout,
 
-        order,
+        order: {
+            id: orderId,
+            total,
+            checkoutUrl,
+        },
     });
+
 }
 
 
@@ -184,8 +248,13 @@ if (
 
     if (checkoutPending && checkoutStage === "none") {
     const total = cart.reduce(
-        (sum: number, product: any) =>
-            sum + product.price,
+        (
+            sum: number,
+            product: CartItem
+        ) =>
+            sum +
+            product.price *
+            product.quantity,
         0
     );
 
@@ -211,8 +280,13 @@ if (
             }
 
             const total = cart.reduce(
-                (sum: number, product: any) =>
-                    sum + product.price,
+                (
+                    sum: number,
+                    product: CartItem
+                ) =>
+                    sum +
+                    product.price *
+                    product.quantity,
                 0
             );
 
@@ -236,17 +310,26 @@ if (
         }
 
         const total = cart.reduce(
-            (sum: number, product: any) =>
-                sum + product.price,
-            0
-        );
+              (
+                  sum: number,
+                  product: CartItem
+              ) =>
+                  sum +
+                  product.price *
+                  product.quantity,
+              0
+          );
 
-        const items = cart
-            .map(
-                (product: any) =>
-                    `• ${product.name} — LKR ${product.price}`
-            )
-            .join("\n");
+
+          const items = cart
+              .map(
+                  (product: CartItem) =>
+                      `• ${product.name} × ${product.quantity} — LKR ${(
+                          product.price *
+                          product.quantity
+                      ).toLocaleString()}`
+              )
+              .join("\n");
 
         return NextResponse.json({
             reply: [
@@ -259,6 +342,59 @@ if (
             products: cart,
         });
     }
+
+
+
+    if (
+          lowerMessage.startsWith("track ")
+      ) {
+          const orderId =
+              message
+                  .replace(
+                      /^track\s+/i,
+                      ""
+                  )
+                  .trim();
+
+          const result =
+              await trackOrder(
+                  orderId
+              );
+
+          console.log(
+              "TRACK RESULT:",
+              result
+          );
+
+          const trackText =
+              (
+                  result.structuredContent as {
+                      result?: string;
+                  }
+              )?.result ??
+              "Unable to track order.";
+
+          if (
+              trackText.includes(
+                  "order_not_found"
+              )
+          ) {
+              return NextResponse.json({
+                  reply:
+                      "The order has not yet entered the tracking system. Please complete payment first or try again later.",
+
+                  products: [],
+              });
+          }
+
+          return NextResponse.json({
+              reply: trackText,
+              products: [],
+          });
+      }
+
+      
+
 
     // STEP 8: DELIVERY CHECK
     if (
