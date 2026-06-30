@@ -219,6 +219,9 @@ export const KaprukaAIChat: React.FC = () => {
             | "sender"
             | "complete"
             | "gift"
+            | "giftAge"
+            | "giftBudget"
+            | "giftDate"
         >("none");
 
     const [checkoutData, setCheckoutData] =

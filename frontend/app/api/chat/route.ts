@@ -319,6 +319,187 @@ export async function POST(req: Request) {
 
 
     if (
+      checkoutStage ===
+      "giftAge"
+    ) {
+      return NextResponse.json({
+        reply:
+          `Great! Age ${message}.\n\nWhat's your budget in LKR?`,
+
+        products: [],
+
+        nextCheckoutStage:
+          "giftBudget",
+
+        checkoutData: {
+          ...checkoutData,
+
+          giftAge:
+            message,
+        },
+      });
+    }
+
+
+    if (
+      checkoutStage ===
+      "giftBudget"
+    ) {
+      return NextResponse.json({
+        reply:
+          `Perfect! Budget LKR ${message}.\n\nWhen do you need it delivered?`,
+
+        products: [],
+
+        nextCheckoutStage:
+          "giftDate",
+
+        checkoutData: {
+          ...checkoutData,
+
+          giftBudget:
+            message,
+        },
+      });
+    }
+
+    if (
+      checkoutStage ===
+      "giftDate"
+    ) {
+      const budget =
+        Number(
+          checkoutData
+            .giftBudget
+        );
+
+      const recipient =
+        checkoutData
+          .giftRecipient ??
+        "";
+
+      let searchQuery =
+        "gift";
+
+      if (
+        recipient ===
+        "mother" ||
+        recipient ===
+        "wife" ||
+        recipient ===
+        "girlfriend" ||
+        recipient ===
+        "sister"
+      ) {
+        searchQuery =
+          "flowers";
+      }
+      else if (
+        recipient ===
+        "father" ||
+        recipient ===
+        "brother" ||
+        recipient ===
+        "boyfriend"
+      ) {
+        searchQuery =
+          "chocolates";
+      }
+      else if (
+        recipient ===
+        "friend"
+      ) {
+        searchQuery =
+          "giftset";
+      }
+      else if (
+        recipient ===
+        "teacher" ||
+        recipient ===
+        "boss"
+      ) {
+        searchQuery =
+          "gift voucher";
+      }
+
+      const products =
+        await searchProducts(
+          searchQuery
+        );
+
+      const filteredProducts =
+        products.filter(
+          (p) =>
+            Number(
+              p.price
+            ) <= budget
+        );
+
+      // No suitable gifts found
+      if (
+        filteredProducts.length === 0
+      ) {
+        return NextResponse.json({
+          reply:
+            `Sorry 😔 I couldn't find a suitable gift under LKR ${budget}.\n\n` +
+            `Please enter a higher budget.`,
+
+          products: [],
+
+          // Keep user in the gift workflow
+          nextCheckoutStage:
+            "giftBudget",
+
+          checkoutData,
+        });
+      }
+
+      // Top 3 gift recommendations
+      const topPicks =
+        filteredProducts.slice(
+          0,
+          3
+        );
+
+      const recipientName =
+        checkoutData.giftRecipient ??
+        "recipient";
+
+      return NextResponse.json({
+        reply:
+          `🎁 Here are my top gift recommendations for your ${recipientName}.\n\n` +
+          topPicks
+            .map(
+              (p, i) =>
+                `${[
+                  "❤️",
+                  "🎁",
+                  "🌸",
+                ][i]} ${p.name}\nLKR ${p.price}`
+            )
+            .join("\n\n"),
+
+        products:
+          topPicks,
+
+        currentProduct:
+          topPicks[0]
+          ?? null,
+
+        // Gift finder completed successfully
+        nextCheckoutStage:
+          "none",
+
+        checkoutData: {
+          ...checkoutData,
+          giftDate:
+            message,
+        },
+      });
+    }
+
+
+    if (
       lowerMessage.includes("categories") ||
       lowerMessage.includes("show categories") ||
       lowerMessage.includes("browse categories")
@@ -356,6 +537,85 @@ export async function POST(req: Request) {
             .join("\n"),
 
         products: [],
+      });
+    }
+
+    if (
+      lowerMessage.includes("gift") &&
+      (
+        lowerMessage.includes("mother") ||
+        lowerMessage.includes("mom") ||
+        lowerMessage.includes("mum") ||
+
+        lowerMessage.includes("father") ||
+        lowerMessage.includes("dad") ||
+
+        lowerMessage.includes("wife") ||
+        lowerMessage.includes("husband") ||
+
+        lowerMessage.includes("girlfriend") ||
+        lowerMessage.includes("boyfriend") ||
+
+        lowerMessage.includes("friend") ||
+        lowerMessage.includes("brother") ||
+        lowerMessage.includes("sister") ||
+        lowerMessage.includes("teacher") ||
+        lowerMessage.includes("boss") ||
+        lowerMessage.includes("child")
+      )
+    ) {
+      const recipient =
+        lowerMessage.includes("mother") ||
+          lowerMessage.includes("mom") ||
+          lowerMessage.includes("mum")
+          ? "mother"
+          : lowerMessage.includes("father") ||
+            lowerMessage.includes("dad")
+            ? "father"
+            : lowerMessage.includes("wife")
+              ? "wife"
+              : lowerMessage.includes("husband")
+                ? "husband"
+                : lowerMessage.includes("girlfriend")
+                  ? "girlfriend"
+                  : lowerMessage.includes("boyfriend")
+                    ? "boyfriend"
+                    : lowerMessage.includes("friend")
+                      ? "friend"
+                      : lowerMessage.includes("teacher")
+                        ? "teacher"
+                        : lowerMessage.includes("boss")
+                          ? "boss"
+                          : lowerMessage.includes("brother")
+                            ? "brother"
+                            : lowerMessage.includes("sister")
+                              ? "sister"
+                              : "someone";
+
+      return NextResponse.json({
+        reply:
+          `🎁 I'd love to help find a gift for your ${recipient}.\n\nHow old is ${recipient === "mother" ||
+            recipient === "wife" ||
+            recipient === "girlfriend" ||
+            recipient === "sister"
+            ? "she"
+            : recipient === "father" ||
+              recipient === "husband" ||
+              recipient === "boyfriend" ||
+              recipient === "brother"
+              ? "he"
+              : "they"
+          }?`,
+
+        products: [],
+
+        nextCheckoutStage:
+          "giftAge",
+
+        checkoutData: {
+          ...checkoutData,
+          giftRecipient: recipient,
+        },
       });
     }
 
