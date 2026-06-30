@@ -214,6 +214,8 @@ export const KaprukaAIChat: React.FC = () => {
 
     const [cart, setCart] =
         useState<CartItem[]>([]);
+    const [cartOpen, setCartOpen] =
+        useState(false);
     const skipInitialCartPersist = useRef(true);
 
 
@@ -248,6 +250,49 @@ export const KaprukaAIChat: React.FC = () => {
             sender: "",
             giftMessage: "",
         });
+
+    const cartItemCount =
+        cart.reduce(
+            (total, item) =>
+                total + item.quantity,
+            0
+        );
+
+    const cartTotal =
+        cart.reduce(
+            (total, item) =>
+                total + item.price * item.quantity,
+            0
+        );
+
+    const updateCartQuantity = (
+        productId: string,
+        quantity: number
+    ) => {
+        setCart((prev) =>
+            prev
+                .map((item) =>
+                    item.id === productId
+                        ? {
+                            ...item,
+                            quantity,
+                        }
+                        : item
+                )
+                .filter((item) => item.quantity > 0)
+        );
+    };
+
+    const removeCartItem = (productId: string) => {
+        setCart((prev) =>
+            prev.filter((item) => item.id !== productId)
+        );
+    };
+
+    const startCheckoutFromCart = () => {
+        setCartOpen(false);
+        setInputValue("checkout");
+    };
 
     useEffect(() => {
         console.log(
@@ -769,14 +814,141 @@ export const KaprukaAIChat: React.FC = () => {
                     <HelpCircleIcon className="h-4 w-4 cursor-pointer hover:text-white" />
                 </div>
 
-                <div
-                    className={`flex h-9 min-w-14 items-center justify-center gap-1.5 rounded-full border border-sky-300/20 bg-sky-500/15 px-3 text-sm font-bold text-sky-100 shadow-lg shadow-sky-500/10 transition-transform ${
-                        cart.length > 0 ? "animate-bounce" : ""
-                    }`}
-                    aria-label={`${cart.length} items in cart`}
-                >
-                    <ShoppingCartIcon className="h-4 w-4 text-[#38BDF8]" />
-                    <span>{cart.length}</span>
+                <div className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setCartOpen((open) => !open)}
+                        className={`flex h-9 min-w-14 items-center justify-center gap-1.5 rounded-full border border-sky-300/20 bg-sky-500/15 px-3 text-sm font-bold text-sky-100 shadow-lg shadow-sky-500/10 transition hover:border-sky-300/50 hover:bg-sky-400/20 ${
+                            cartItemCount > 0 ? "animate-bounce" : ""
+                        }`}
+                        aria-label={`${cartItemCount} items in cart`}
+                        aria-expanded={cartOpen}
+                    >
+                        <ShoppingCartIcon className="h-4 w-4 text-[#38BDF8]" />
+                        <span>{cartItemCount}</span>
+                    </button>
+
+                    {cartOpen && (
+                        <div className="absolute right-0 top-12 z-50 w-[min(92vw,390px)] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/95 shadow-2xl shadow-slate-950/60 backdrop-blur-xl">
+                            <div className="flex items-center justify-between border-b border-white/10 bg-sky-400/10 px-4 py-3">
+                                <div>
+                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">
+                                        Your Cart
+                                    </p>
+                                    <p className="mt-0.5 text-sm font-bold text-white">
+                                        {cartItemCount} item{cartItemCount === 1 ? "" : "s"}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setCartOpen(false)}
+                                    className="rounded-md border border-white/10 px-2 py-1 text-xs font-bold text-slate-400 transition hover:bg-white/5 hover:text-white"
+                                >
+                                    Close
+                                </button>
+                            </div>
+
+                            {cart.length === 0 ? (
+                                <div className="px-5 py-8 text-center">
+                                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-sky-300/20 bg-sky-400/10">
+                                        <ShoppingCartIcon className="h-5 w-5 text-sky-300" />
+                                    </div>
+                                    <p className="mt-3 text-sm font-black text-white">
+                                        Your cart is empty
+                                    </p>
+                                    <p className="mt-1 text-xs leading-5 text-slate-400">
+                                        Add a product card, then open this cart to review and checkout.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="max-h-[360px] space-y-3 overflow-y-auto p-3">
+                                        {cart.map((item) => (
+                                            <div key={item.id} className="grid grid-cols-[64px_1fr] gap-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+                                                <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-slate-900">
+                                                    {item.image ? (
+                                                        <Image
+                                                            src={item.image}
+                                                            alt={item.name}
+                                                            fill
+                                                            sizes="64px"
+                                                            className="object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full items-center justify-center text-[10px] text-slate-500">
+                                                            Gift
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <p className="line-clamp-2 text-sm font-black leading-snug text-white">
+                                                            {item.name}
+                                                        </p>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeCartItem(item.id)}
+                                                            className="shrink-0 rounded-md px-2 py-1 text-[11px] font-bold text-rose-300 transition hover:bg-rose-400/10"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+
+                                                    <p className="mt-1 text-xs font-bold text-sky-200">
+                                                        LKR {(item.price * item.quantity).toLocaleString()}
+                                                    </p>
+
+                                                    <div className="mt-2 flex items-center justify-between gap-2">
+                                                        <div className="inline-flex items-center overflow-hidden rounded-lg border border-white/10 bg-slate-950/60">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                                                                className="flex h-8 w-8 items-center justify-center text-sm font-black text-slate-300 transition hover:bg-white/10"
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <span className="flex h-8 min-w-9 items-center justify-center border-x border-white/10 px-2 text-xs font-black text-white">
+                                                                {item.quantity}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                                                                className="flex h-8 w-8 items-center justify-center text-sm font-black text-slate-300 transition hover:bg-white/10"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                        <span className="text-[11px] font-semibold text-slate-500">
+                                                            LKR {item.price.toLocaleString()} each
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="border-t border-white/10 bg-slate-900/80 p-4">
+                                        <div className="mb-3 flex items-center justify-between">
+                                            <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                                                Total
+                                            </span>
+                                            <span className="text-xl font-black text-sky-200">
+                                                LKR {cartTotal.toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={startCheckoutFromCart}
+                                            className="flex h-11 w-full items-center justify-center rounded-lg bg-sky-300 text-sm font-black text-slate-950 shadow-lg shadow-sky-300/20 transition hover:bg-sky-200"
+                                        >
+                                            Checkout
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             </header>
 
