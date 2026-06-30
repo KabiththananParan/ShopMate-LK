@@ -378,6 +378,12 @@ export async function POST(req: Request) {
           .giftRecipient ??
         "";
 
+      const age =
+        Number(
+          checkoutData
+            .giftAge
+        ) || 30;
+
       let searchQuery =
         "gift";
 
@@ -391,9 +397,25 @@ export async function POST(req: Request) {
         recipient ===
         "sister"
       ) {
-        searchQuery =
-          "flowers";
+        if (
+          age <= 30
+        ) {
+          searchQuery =
+            "perfume";
+        }
+        else if (
+          age <= 50
+        ) {
+          searchQuery =
+            "flowers";
+        }
+        else {
+          searchQuery =
+            "giftset";
+        }
       }
+
+      // Men / family
       else if (
         recipient ===
         "father" ||
@@ -402,16 +424,42 @@ export async function POST(req: Request) {
         recipient ===
         "boyfriend"
       ) {
-        searchQuery =
-          "chocolates";
+        if (
+          age <= 25
+        ) {
+          searchQuery =
+            "electronics";
+        }
+        else {
+          searchQuery =
+            "chocolates";
+        }
       }
+
+      // Friends
       else if (
         recipient ===
         "friend"
       ) {
-        searchQuery =
-          "giftset";
+        if (
+          age <= 18
+        ) {
+          searchQuery =
+            "toys";
+        }
+        else if (
+          age <= 30
+        ) {
+          searchQuery =
+            "giftset";
+        }
+        else {
+          searchQuery =
+            "chocolates";
+        }
       }
+
+      // Professional gifts
       else if (
         recipient ===
         "teacher" ||
@@ -420,6 +468,12 @@ export async function POST(req: Request) {
       ) {
         searchQuery =
           "gift voucher";
+      }
+
+      // Fallback
+      else {
+        searchQuery =
+          "gift";
       }
 
       const products =
@@ -431,7 +485,12 @@ export async function POST(req: Request) {
         products.filter(
           (p) =>
             Number(
-              p.price
+              String(
+                p.price
+              ).replace(
+                /,/g,
+                ""
+              )
             ) <= budget
         );
 
@@ -468,25 +527,62 @@ export async function POST(req: Request) {
       return NextResponse.json({
         reply:
           `🎁 Here are my top gift recommendations for your ${recipientName}.\n\n` +
+
           topPicks
-            .map(
-              (p, i) =>
-                `${[
-                  "❤️",
-                  "🎁",
-                  "🌸",
-                ][i]} ${p.name}\nLKR ${p.price}`
-            )
+            .map((p, i) => {
+              const reason =
+                recipientName ===
+                  "friend"
+                  ? "Perfect for celebrating special moments."
+                  : recipientName ===
+                    "mother"
+                    ? "A thoughtful and elegant gift choice."
+                    : recipientName ===
+                      "father"
+                      ? "A practical and memorable gift."
+                      : recipientName ===
+                        "wife"
+                        ? "A romantic and meaningful present."
+                        : recipientName ===
+                          "girlfriend"
+                          ? "A sweet and heartfelt surprise."
+                          : recipientName ===
+                            "boyfriend"
+                            ? "A stylish and thoughtful choice."
+                            : recipientName ===
+                              "teacher"
+                              ? "A respectful and memorable gift."
+                              : recipientName ===
+                                "boss"
+                                ? "A professional and sophisticated option."
+                                : recipientName ===
+                                  "sister"
+                                  ? "A beautiful and caring gift."
+                                  : recipientName ===
+                                    "brother"
+                                    ? "A fun and thoughtful gift."
+                                    : "A great gift choice.";
+
+              return `${[
+                "❤️",
+                "🎁",
+                "🌸",
+              ][i]} ${p.name}
+
+LKR ${p.price}
+
+${reason}`;
+            })
             .join("\n\n"),
 
         products:
           topPicks,
 
         currentProduct:
-          topPicks[0]
-          ?? null,
+          topPicks[0] ??
+          null,
 
-        // Gift finder completed successfully
+        // Gift finder completed
         nextCheckoutStage:
           "none",
 
