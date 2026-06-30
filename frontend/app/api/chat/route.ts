@@ -320,6 +320,88 @@ export async function POST(req: Request) {
 
     if (
       checkoutStage ===
+      "trackOrder"
+    ) {
+      const result =
+        await trackOrder(
+          message
+        );
+
+      const raw =
+        (
+          result.structuredContent as {
+            result?: string;
+          }
+        )?.result ?? "";
+
+      // Status
+      const status =
+        raw.match(
+          /Order `.*` — (.*)/i
+        )?.[1] ??
+        "Unknown";
+
+      // Total
+      const total =
+        raw.match(
+          /value': '(\d+)'/
+        )?.[1] ??
+        "Unknown";
+
+      // Recipient
+      const recipient =
+        raw.match(
+          /\*\*Delivering to\*\*\n- ([^\n]+)/m
+        )?.[1] ??
+        "Unknown";
+
+      // Progress steps
+      const progress =
+        [
+          ...raw.matchAll(
+            /- (.+)/g
+          ),
+        ]
+          .map(
+            (m) => m[1]
+          )
+          .slice(-5);
+
+      return NextResponse.json({
+        reply:
+          `📦 Order Tracking\n\n` +
+
+          `Order: ${message.toUpperCase()}\n\n` +
+
+          `Status: ${status ===
+            "Delivered"
+            ? "✅ Delivered"
+            : status
+          }\n\n` +
+
+          `Recipient: ${recipient}\n\n` +
+
+          `Total: LKR ${total}\n\n` +
+
+          `Progress:\n` +
+
+          progress
+            .map(
+              (p) =>
+                `✓ ${p}`
+            )
+            .join("\n"),
+
+        products: [],
+
+        nextCheckoutStage:
+          "none",
+      });
+    }
+
+
+    if (
+      checkoutStage ===
       "giftAge"
     ) {
       return NextResponse.json({
@@ -591,6 +673,24 @@ ${reason}`;
           giftDate:
             message,
         },
+      });
+    }
+
+    if (
+      lowerMessage ===
+      "track my order" ||
+      lowerMessage ===
+      "track order" ||
+      lowerMessage ===
+      "track"
+    ) {
+      return NextResponse.json({
+        reply:
+          "📦 I'd be happy to track your order.\n\nPlease enter the Kapruka order number from your payment confirmation email.\n\nExample:\nVIMP34456CB2",
+        products: [],
+
+        nextCheckoutStage:
+          "trackOrder",
       });
     }
 

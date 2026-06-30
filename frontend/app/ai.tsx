@@ -222,6 +222,7 @@ export const KaprukaAIChat: React.FC = () => {
             | "giftAge"
             | "giftBudget"
             | "giftDate"
+            | "trackOrder"
         >("none");
 
     const [checkoutData, setCheckoutData] =
