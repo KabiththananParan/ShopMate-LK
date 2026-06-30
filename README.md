@@ -1,434 +1,162 @@
-# 🇱🇰 ShopMate LK — Multilingual AI Shopping Assistant for Sri Lanka
+# ShopMate LK
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-blue)
-![AI](https://img.shields.io/badge/AI-Groq-orange)
-![MCP](https://img.shields.io/badge/MCP-Kapruka-green)
-![Status](https://img.shields.io/badge/Status-Production-success)
+AI-powered shopping assistant for Sri Lankan e-commerce.
 
-> **ShopMate LK** is a multilingual AI-powered shopping assistant built for Sri Lankan e-commerce. It enables users to discover products, build carts, schedule deliveries, create gift orders, and complete purchases using **English, Tanglish, Sinhala, and voice commands**.
+ShopMate LK turns product discovery, gift selection, cart building, checkout, and payment handoff into a conversational experience. Users can search naturally in English, Tanglish-style Sinhala, Sinhala-normalized phrases, or voice input, then browse rich product cards powered by Kapruka MCP data.
 
----
+## Highlights
 
-# 🌟 Why ShopMate LK?
+- Conversational product discovery with Groq Llama 3.1.
+- Live Kapruka MCP integration for product search, product details, delivery checks, order creation, order tracking, and categories.
+- Rich product results with images, recommendation cards, carousel-style browsing, stock, price, rationale, Details, and Add To Bag actions.
+- Persistent cart with quantity support using browser localStorage.
+- Guided checkout flow with progress indicator.
+- Gift recommendation flow for recipients such as mother, father, friend, sibling, teacher, and partner.
+- Order success card with order id, total, and Pay Now link.
+- Voice input using the browser Web Speech API.
+- Demo-ready opening suggestions and animated loading/listening states.
 
-Traditional e-commerce requires users to manually search, filter, compare, and navigate through multiple pages before purchasing.
+## Demo Prompts
 
-ShopMate LK transforms shopping into a conversational experience by allowing users to communicate naturally in the languages they already use.
-
-### English
-
-> "I need a birthday cake for my sister."
-
-### Tanglish
-
-> "mama cake ekak ganna oni"
-
-### Sinhala
-
-> "මට කේක් එකක් ඕන"
-
----
-
-# ✨ Features
-
-## 🤖 AI Product Discovery
-
-* Natural language product search
-* AI-powered recommendations
-* Product comparison assistance
-* Context-aware shopping conversations
-
-## 🛒 Smart Shopping Cart
-
-* Multi-item cart support
-* Quantity controls
-* Remove products
-* Clear cart
-* Persistent cart using localStorage
-
-## 🎁 Gift Commerce
-
-* Gift sender support
-* Personalized gift messages
-* Recipient management
-
-## 📦 Intelligent Checkout
-
-* Guided checkout workflow
-* Delivery city validation
-* Delivery date selection
-* Recipient collection
-* Address management
-* Order confirmation
-
-## 💳 Order Processing
-
-* Kapruka order creation
-* Dynamic payment links
-* Order tracking
-* Delivery cost calculation
-
-## 🎙️ Voice Shopping
-
-* Voice-enabled product search
-* English voice support
-* Tanglish voice support
-* Experimental Sinhala voice support
-
-## 🇱🇰 Multilingual Support
-
-* English
-* Tanglish
-* Sinhala
-
----
-
-# 🚀 How To Use ShopMate LK
-
-## 1️⃣ Search Products
-
-Search naturally using any supported language.
-
-### English
-
-```text
-I need a birthday cake
-```
-
-```text
-Show me flower bouquets under LKR 5000
-```
-
-### Tanglish
+Try these on the first screen:
 
 ```text
 mama cake ekak ganna oni
+Birthday gift for my mother
+browse flowers
+Find me a chocolate hamper under LKR 10000
 ```
 
-```text
-mata flower ekak yawanawa
-```
-
-### Sinhala
+Other useful prompts:
 
 ```text
-මට කේක් එකක් ඕන
-```
-
-```text
-මල් යවන්න ඕන
-```
-
----
-
-## 2️⃣ Voice Shopping 🎤
-
-Click the microphone icon and speak naturally.
-
-### English
-
-```text
-I need a cake
-```
-
-### Tanglish (recommended)
-
-```text
-mama cake ekak ganna oni
-```
-
-```text
-mata flower ekak yawanawa
-```
-
-### Sinhala
-
-```text
-මට කේක් එකක් ඕන
-```
-
-> ⚠️ Browser speech recognition currently performs best with English and Tanglish. Sinhala accuracy depends on browser support.
-
----
-
-## 3️⃣ Add Products To Cart
-
-When products appear:
-
-```text
-Click:
-Add To Bag
-```
-
-Features:
-
-* Add multiple products
-* Increase quantities
-* Remove products
-* Clear cart
-* Persistent cart after refresh
-
----
-
-## 4️⃣ View Cart
-
-Example:
-
-```text
-Blackcherry Velvet Bento Cheesecake × 2
-Blueberry Bliss Bento Cheesecake × 1
-
-Total: LKR 11,960
-```
-
----
-
-## 5️⃣ Checkout
-
-Simply type:
-
-```text
+Show me birthday cakes in Colombo
+Show categories
+Do you deliver to Jaffna?
+cart
 checkout
+track ORD-20260630-ABCD
+clear cart
+remove blueberry cake
 ```
 
-ShopMate LK guides users through the entire order process.
-
-### Example Checkout Flow
+## User Flow
 
 ```text
-checkout
-yes
-Jaffna
-Kabi
-0766580968
-2026-07-11
-Jaffna Town
-Paran
-Happy Birthday ❤️
+Open ShopMate LK
+  -> Ask for a product, gift, category, or delivery help
+  -> Review rich product cards
+  -> Add items to bag
+  -> Type "cart" to review
+  -> Type "checkout"
+  -> Confirm checkout
+  -> Enter city, recipient, phone, date, address, sender, gift message
+  -> Receive order id, total, and payment link
 ```
 
-The assistant automatically collects:
+## Checkout Steps
 
-* Delivery city
-* Recipient
-* Phone number
-* Delivery date
-* Address
-* Gift sender
-* Gift message
-
----
-
-## 6️⃣ Order Creation
-
-After checkout:
+The checkout progress indicator follows this flow:
 
 ```text
-✓ Order Created
+Confirm -> City -> Recipient -> Phone -> Date -> Address -> Gift
 ```
 
-Users receive:
+After the final gift-message step, the app calls Kapruka MCP to create the order and renders a payment-ready success card.
 
-* Order ID
-* Total amount
-* Payment link
-
-Example:
-
-```text
-Order:
-ORD-20260630-EHFU
-
-Total:
-LKR 58,820
-```
-
----
-
-## 7️⃣ Payment
-
-Click:
-
-```text
-Pay Now
-```
-
-to continue to the official Kapruka checkout page.
-
----
-
-## 8️⃣ Order Tracking
-
-Track orders using:
-
-```text
-track ORD-20260630-EHFU
-```
-
----
-
-# 🏗️ Architecture
-
-```text
-User
-   ↓
-Voice/Text Input
-   ↓
-Language Processing
-   ├── Sinhala Normalizer
-   ├── Tanglish Normalizer
-   └── English
-   ↓
-AI Recommendation Engine
-   ↓
-Kapruka MCP
-       ├── Product Search
-       ├── Delivery Validation
-       ├── Order Creation
-       └── Order Tracking
-   ↓
-Checkout Workflow Engine
-   ↓
-Payment Link Generation
-```
-
----
-
-# 🔄 Checkout Workflow
-
-```text
-Search Product
-      ↓
-Add To Cart
-      ↓
-Checkout
-      ↓
-Confirm
-      ↓
-Delivery City
-      ↓
-Recipient
-      ↓
-Phone Number
-      ↓
-Delivery Date
-      ↓
-Address
-      ↓
-Sender
-      ↓
-Gift Message
-      ↓
-Create Order
-      ↓
-Payment Link
-```
-
----
-
-# 💡 Demo Flow
-
-## Voice + Tanglish
-
-```text
-🎤 mama cake ekak ganna oni
-```
-
-## Add To Cart
-
-```text
-Add To Bag
-```
-
-## Checkout
-
-```text
-checkout
-```
-
-## Gift Order
-
-```text
-Jaffna
-Kabi
-0766580968
-2026-07-11
-Jaffna Town
-Paran
-Happy Birthday ❤️
-```
-
-## Payment
-
-```text
-Pay Now
-```
-
----
-
-# 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
-* Next.js 16
-* React
-* TypeScript
-* Tailwind CSS
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Next Image
+- Web Speech API
+- LocalStorage
 
-### AI
+### AI and Commerce
 
-* Groq API
-* Llama 3.1 8B
+- Groq SDK
+- `llama-3.1-8b-instant`
+- Model Context Protocol SDK
+- Kapruka MCP endpoint: `https://mcp.kapruka.com/mcp`
 
-### Commerce
-
-* Kapruka MCP Server
-* Model Context Protocol (MCP)
-
-### Additional Features
-
-* Web Speech API
-* LocalStorage Persistence
-* Multilingual Query Processing
-
----
-
-# 📂 Project Structure
+## Architecture
 
 ```text
-frontend/
-│
-├── app/
-│   ├── api/
-│   │   ├── chat/
-│   │   └── tools/
-│   ├── ai.tsx
-│   └── page.tsx
-│
-├── services/
-│   ├── mcp/
-│   │   ├── kapruka.ts
-│   │   └── cityMapper.ts
-│   │
-│   └── language/
-│       ├── tanglish.ts
-│       └── sinhala.ts
-│
-└── components/
+User
+  -> Next.js UI
+  -> Voice or text input
+  -> /api/chat
+  -> Sinhala normalizer
+  -> Tanglish normalizer
+  -> Checkout/cart intent handling
+  -> Kapruka MCP tools
+       - kapruka_search_products
+       - kapruka_get_product
+       - kapruka_check_delivery
+       - kapruka_create_order
+       - kapruka_track_order
+       - kapruka_list_categories
+  -> Groq recommendation response
+  -> Rich product/result UI
 ```
 
----
+## Project Structure
 
-# 🚀 Running Locally
+```text
+ShopMate-LK/
+  README.md
+  docs/
+    MCP.docx
+    MCP.txt
+  frontend/
+    app/
+      api/
+        chat/
+          route.ts
+        tools/
+          route.ts
+      ai.tsx
+      CheckoutProgress.tsx
+      globals.css
+      layout.tsx
+      page.tsx
+    services/
+      language/
+        sinhala.ts
+        tanglish.ts
+      mcp/
+        cityMapper.ts
+        kapruka.ts
+        productMapper.ts
+        searchMapper.ts
+        searchProducts.ts
+    types/
+      product.ts
+    next.config.ts
+    package.json
+```
+
+## Environment Variables
+
+Create `frontend/.env.local`:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+The Kapruka MCP endpoint is currently configured directly in `frontend/services/mcp/kapruka.ts`.
+
+## Running Locally
+
+From the repository root:
 
 ```bash
-git clone <repository-url>
-
 cd frontend
-
 npm install
-
 npm run dev
 ```
 
@@ -438,47 +166,90 @@ Open:
 http://localhost:3000
 ```
 
----
+## Scripts
 
-# 🏆 Highlights
+Run inside `frontend/`:
 
-✅ Multilingual AI Shopping Assistant
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
 
-✅ Sinhala Language Support
+## Image Hosts
 
-✅ Tanglish Language Support
+External product images are rendered through `next/image`. Allowed hosts are configured in `frontend/next.config.ts`, including:
 
-✅ Voice Shopping
+- `kapruka.com`
+- `*.kapruka.com`
+- `singerwebcdn.azureedge.net`
 
-✅ Multi-Item Cart
+Add any new product CDN host there before using it with `next/image`.
 
-✅ Gift Commerce
+## Key Files
 
-✅ Smart Checkout Workflow
+- `frontend/app/ai.tsx`  
+  Main chat experience, voice UI, rich product cards, cart UI, checkout UI, and order success card.
 
-✅ Payment Integration
+- `frontend/app/CheckoutProgress.tsx`  
+  Checkout progress indicator.
 
-✅ Order Tracking
+- `frontend/app/api/chat/route.ts`  
+  Chat API route, intent handling, checkout state handling, Groq response generation, and MCP calls.
 
-✅ Kapruka MCP Integration
+- `frontend/services/mcp/kapruka.ts`  
+  Kapruka MCP client wrapper for products, delivery, orders, tracking, and categories.
 
----
+- `frontend/services/language/tanglish.ts` and `frontend/services/language/sinhala.ts`  
+  Query normalization before product search and intent handling.
 
-# ⚠️ Known Limitations
+## Feature Details
 
-* Sinhala voice recognition accuracy depends on browser support.
-* Payment processing is completed through Kapruka's external checkout page.
-* Product availability depends on live Kapruka inventory.
+### Product Search
 
----
+Normal user searches are normalized, passed to Kapruka MCP search, mapped into app product objects, and displayed as rich result cards.
 
-# 👨‍💻 Author
+### Gift Finder
 
-**Paran Kabiththanan**
+When the user asks for a gift for a specific recipient, the app asks follow-up questions for age, budget, and date. It then maps the recipient profile to a product search category and returns top recommendations.
 
-* GitHub: https://github.com/KabiththananParan
-* LinkedIn: https://www.linkedin.com/in/paran-kabiththanan/
+### Cart
 
----
+Users can add products from cards, review the cart with `cart`, remove products with `remove <name>`, or clear the cart with `clear cart`.
 
-Built with ❤️ for Sri Lankan e-commerce.
+### Checkout
+
+Typing `checkout` starts a guided workflow. The assistant collects:
+
+- Delivery city
+- Recipient name
+- Phone number
+- Delivery date
+- Delivery address
+- Sender name
+- Gift message
+
+The final step creates an order through Kapruka MCP.
+
+### Voice
+
+The microphone button starts browser speech recognition. Voice support depends on the user's browser and OS speech recognition support.
+
+## Known Limitations
+
+- Sinhala voice recognition accuracy depends on browser support.
+- Product inventory, pricing, and images depend on Kapruka MCP responses.
+- Payment is completed through the generated external checkout link.
+- If a new external product image CDN appears, it must be added to `next.config.ts`.
+
+## Author
+
+Paran Kabiththanan
+
+- GitHub: [KabiththananParan](https://github.com/KabiththananParan)
+- LinkedIn: [paran-kabiththanan](https://www.linkedin.com/in/paran-kabiththanan/)
+
+## License
+
+This project is for educational and demonstration use unless a separate license is added.
