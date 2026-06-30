@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
 import {
@@ -42,7 +42,7 @@ const extractOrderId = (message: string) =>
     .trim()
     .toUpperCase();
 
-const formatTrackingReply = (
+const getTrackingDetails = (
   raw: string,
   requestedOrderId: string
 ) => {
@@ -65,21 +65,67 @@ const formatTrackingReply = (
   const normalizedStatus =
     status.toUpperCase();
 
+  return {
+    orderId,
+    status: normalizedStatus,
+    recipient,
+    total: `LKR ${formatCurrency(total)}`,
+    liveTracking: true,
+    steps: [
+      {
+        label: "Order Received",
+        time: "May 22 • 10:19 AM",
+        state: "complete",
+      },
+      {
+        label: "Preparing",
+        time: "May 22 • 7:07 PM",
+        state: "complete",
+      },
+      {
+        label: "Ready For Delivery",
+        time: "May 23 • 8:43 AM",
+        state: "complete",
+      },
+      {
+        label: "Out For Delivery",
+        time: "May 23 • 8:43 AM",
+        state: "transit",
+      },
+      {
+        label: "Delivered",
+        time: "May 23 • 1:17 PM",
+        state: "delivered",
+      },
+    ],
+  };
+};
+
+const formatTrackingReply = (
+  raw: string,
+  requestedOrderId: string
+) => {
+  const tracking =
+    getTrackingDetails(
+      raw,
+      requestedOrderId
+    );
+
   return [
     "📦 Delivery Timeline",
     "",
-    `🟢 ${normalizedStatus}`,
-    "",
+    "━━━━━━━━━━━━━━",
+    `✅ ${tracking.status}`,
     "━━━━━━━━━━━━━━",
     "",
     "📦 Order",
-    orderId,
+    tracking.orderId,
     "",
     "👤 Recipient",
-    recipient,
+    tracking.recipient,
     "",
     "💰 Total",
-    `LKR ${formatCurrency(total)}`,
+    tracking.total,
     "",
     "━━━━━━━━━━━━━━",
     "",
@@ -87,20 +133,26 @@ const formatTrackingReply = (
     "",
     "🟢 Order Received",
     "     May 22 • 10:19 AM",
-    "",
+    "│",
+    "│",
     "🟢 Preparing",
     "     May 22 • 7:07 PM",
-    "",
+    "│",
+    "│",
     "🟢 Ready For Delivery",
     "     May 23 • 8:43 AM",
-    "",
+    "│",
+    "│",
     "🚚 Out For Delivery",
     "     May 23 • 8:43 AM",
-    "",
+    "│",
+    "│",
     "✅ Delivered",
     "     May 23 • 1:17 PM",
     "",
-    "🎉 Your order was successfully delivered.",
+    "━━━━━━━━━━━━━━",
+    "",
+    "🎉 Delivery completed successfully.",
     "",
     "Thank you for shopping with ShopMate LK.",
   ].join("\n");
@@ -419,6 +471,10 @@ export async function POST(req: Request) {
           raw,
           extractOrderId(message)
         ),
+        tracking: getTrackingDetails(
+          raw,
+          extractOrderId(message)
+        ),
 
         products: [],
 
@@ -611,7 +667,7 @@ export async function POST(req: Request) {
       ) {
         return NextResponse.json({
           reply:
-            `Sorry 😔 I couldn't find a suitable gift under LKR ${budget}.\n\n` +
+            `Sorry ðŸ˜” I couldn't find a suitable gift under LKR ${budget}.\n\n` +
             `Please enter a higher budget.`,
 
           products: [],
@@ -637,7 +693,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         reply:
-          `🎁 Here are my top gift recommendations for your ${recipientName}.\n\n` +
+          `ðŸŽ Here are my top gift recommendations for your ${recipientName}.\n\n` +
 
           topPicks
             .map((p, i) => {
@@ -675,9 +731,9 @@ export async function POST(req: Request) {
                                     : "A great gift choice.";
 
               return `${[
-                "❤️",
-                "🎁",
-                "🌸",
+                "â¤ï¸",
+                "ðŸŽ",
+                "ðŸŒ¸",
               ][i]} ${p.name}
 
 LKR ${p.price}
@@ -715,7 +771,7 @@ ${reason}`;
     ) {
       return NextResponse.json({
         reply:
-          "📦 I'd be happy to track your order.\n\nPlease enter the Kapruka order number from your payment confirmation email.\n\nExample:\nVIMP34456CB2",
+          "I'd be happy to track your order.\n\nPlease enter the Kapruka order number from your payment confirmation email.\n\nExample:\nVIMP34456CB2",
         products: [],
 
         nextCheckoutStage:
@@ -757,7 +813,7 @@ ${reason}`;
           categoryNames
             .map(
               (c) =>
-                `• ${c}`
+                `â€¢ ${c}`
             )
             .join("\n"),
 
@@ -819,7 +875,7 @@ ${reason}`;
 
       return NextResponse.json({
         reply:
-          `🎁 I'd love to help find a gift for your ${recipient}.\n\nHow old is ${recipient === "mother" ||
+          `ðŸŽ I'd love to help find a gift for your ${recipient}.\n\nHow old is ${recipient === "mother" ||
             recipient === "wife" ||
             recipient === "girlfriend" ||
             recipient === "sister"
@@ -971,7 +1027,7 @@ ${reason}`;
       const items = cart
         .map(
           (product: CartItem) =>
-            `• ${product.name} × ${product.quantity} — LKR ${(
+            `â€¢ ${product.name} Ã— ${product.quantity} â€” LKR ${(
               product.price *
               product.quantity
             ).toLocaleString()}`
@@ -1031,6 +1087,10 @@ ${reason}`;
 
       return NextResponse.json({
         reply: formatTrackingReply(
+          trackText,
+          orderId
+        ),
+        tracking: getTrackingDetails(
           trackText,
           orderId
         ),

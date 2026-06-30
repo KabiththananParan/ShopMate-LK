@@ -147,6 +147,19 @@ type Message = {
         total: string;
         checkoutUrl: string;
     };
+
+    tracking?: {
+        orderId: string;
+        status: string;
+        recipient: string;
+        total: string;
+        liveTracking: boolean;
+        steps: {
+            label: string;
+            time: string;
+            state: "complete" | "transit" | "delivered";
+        }[];
+    };
 };
 
 const formatMessageTime = () =>
@@ -501,6 +514,7 @@ export const KaprukaAIChat: React.FC = () => {
                     currentProduct:
                         data.currentProduct,
                     order: data.order,
+                    tracking: data.tracking,
                 },
             ]);
         } catch (error) {
@@ -887,8 +901,96 @@ export const KaprukaAIChat: React.FC = () => {
                                             <div className="flex flex-col items-start gap-1 max-w-[95%] md:max-w-[90%]">
                                                 <div className="text-left rounded-2xl rounded-tl-sm border border-white/5 bg-[#111827]/70 backdrop-blur-md p-4 shadow-xl w-full">
                                                     <p className="whitespace-pre-line">
-                                                        {message.content}
+                                                        {message.tracking ? "Here is the latest Kapruka delivery status." : message.content}
                                                     </p>
+
+                                                    {message.tracking && (
+                                                        <div className="mt-4 overflow-hidden rounded-xl border border-emerald-300/20 bg-slate-950/70 shadow-2xl shadow-emerald-950/20">
+                                                            <div className="border-b border-white/10 bg-emerald-400/10 px-4 py-3">
+                                                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                                                    <div>
+                                                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+                                                                            Delivery Timeline
+                                                                        </p>
+                                                                        <p className="mt-1 text-lg font-black text-white">
+                                                                            {message.tracking.orderId}
+                                                                        </p>
+                                                                    </div>
+                                                                    <span className="rounded-full border border-emerald-300/30 bg-emerald-300 px-3 py-1 text-xs font-black tracking-[0.14em] text-slate-950 shadow-lg shadow-emerald-300/20">
+                                                                        {message.tracking.status}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid gap-0 md:grid-cols-[0.9fr_1.1fr]">
+                                                                <div className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
+                                                                    <div className="grid gap-3">
+                                                                        <div>
+                                                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                                                                Recipient
+                                                                            </p>
+                                                                            <p className="mt-1 text-sm font-bold text-white">
+                                                                                {message.tracking.recipient}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                                                                Total
+                                                                            </p>
+                                                                            <p className="mt-1 text-xl font-black text-sky-200">
+                                                                                {message.tracking.total}
+                                                                            </p>
+                                                                        </div>
+                                                                        {message.tracking.liveTracking && (
+                                                                            <div className="rounded-lg border border-sky-300/20 bg-sky-400/10 px-3 py-2 text-xs font-bold text-sky-100">
+                                                                                Live tracking available on Kapruka
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="p-4">
+                                                                    <div className="space-y-0">
+                                                                        {message.tracking.steps.map((step, index) => {
+                                                                            const isLast = index === message.tracking!.steps.length - 1;
+                                                                            const markerClass =
+                                                                                step.state === "transit"
+                                                                                    ? "bg-amber-300 text-slate-950 shadow-amber-300/30"
+                                                                                    : step.state === "delivered"
+                                                                                        ? "bg-emerald-300 text-slate-950 shadow-emerald-300/30"
+                                                                                        : "bg-emerald-400 text-slate-950 shadow-emerald-400/25";
+
+                                                                            return (
+                                                                                <div key={`${step.label}-${step.time}`} className="relative grid grid-cols-[28px_1fr] gap-3">
+                                                                                    {!isLast && (
+                                                                                        <span className="absolute left-[13px] top-8 h-[calc(100%-1.25rem)] w-px bg-gradient-to-b from-emerald-300/70 to-emerald-300/20" />
+                                                                                    )}
+                                                                                    <span className={`z-10 mt-1 flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-black shadow-lg ${markerClass}`}>
+                                                                                        {step.state === "transit" ? "→" : "✓"}
+                                                                                    </span>
+                                                                                    <div className={`pb-5 ${isLast ? "pb-0" : ""}`}>
+                                                                                        <p className="text-sm font-black text-white">
+                                                                                            {step.label}
+                                                                                        </p>
+                                                                                        <p className="mt-0.5 text-xs font-semibold text-slate-400">
+                                                                                            {step.time}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+
+                                                                    <div className="mt-4 rounded-lg border border-emerald-300/20 bg-emerald-400/10 px-3 py-3 text-sm font-bold text-emerald-100">
+                                                                        Delivery completed successfully.
+                                                                        <span className="mt-1 block text-xs font-medium text-slate-300">
+                                                                            Thank you for shopping with ShopMate LK.
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
 
                                                     {message.order && (
                                                         <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-5 text-center shadow-[0_0_35px_rgba(16,185,129,0.22)] animate-pulse">
