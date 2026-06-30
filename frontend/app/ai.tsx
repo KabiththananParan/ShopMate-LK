@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import type { OrbState } from 'orb-ui';
 
 import type { Product } from "@/types/product";
@@ -147,6 +148,9 @@ type Message = {
     };
 };
 
+const formatMessageTime = () =>
+    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
 export const KaprukaAIChat: React.FC = () => {
     const [inputValue, setInputValue] = useState<string>('');
 
@@ -157,7 +161,7 @@ export const KaprukaAIChat: React.FC = () => {
             id: 'welcome-message',
             role: 'assistant',
             content: "Hi 👋 I'm ShopMate LK, your Kapruka AI shopping assistant. How can I help you discover gifts, cakes, or bouquets across Sri Lanka today?",
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            timestamp: ''
         }
     ]);
     const [loading, setLoading] = useState(false);
@@ -185,23 +189,8 @@ export const KaprukaAIChat: React.FC = () => {
     };
 
     const [cart, setCart] =
-        useState<CartItem[]>(() => {
-            if (
-                typeof window ===
-                "undefined"
-            ) {
-                return [];
-            }
-
-            const saved =
-                localStorage.getItem(
-                    "shopmate-cart"
-                );
-
-            return saved
-                ? JSON.parse(saved)
-                : [];
-        });
+        useState<CartItem[]>([]);
+    const skipInitialCartPersist = useRef(true);
 
 
 
@@ -261,6 +250,33 @@ export const KaprukaAIChat: React.FC = () => {
     }, [cart]);
 
     useEffect(() => {
+        const saved =
+            localStorage.getItem(
+                "shopmate-cart"
+            );
+
+        if (!saved) {
+            return;
+        }
+
+        try {
+            const savedCart = JSON.parse(saved);
+            window.setTimeout(() => {
+                setCart(savedCart);
+            }, 0);
+        } catch {
+            localStorage.removeItem(
+                "shopmate-cart"
+            );
+        }
+    }, []);
+
+    useEffect(() => {
+        if (skipInitialCartPersist.current) {
+            skipInitialCartPersist.current = false;
+            return;
+        }
+
         localStorage.setItem(
             "shopmate-cart",
             JSON.stringify(cart)
@@ -305,16 +321,6 @@ export const KaprukaAIChat: React.FC = () => {
         setInputValue(promptText);
     };
 
-    const handleVoiceToggle = () => {
-        if (loading) return;
-        const nextListeningState = !isListening;
-        setIsListening(nextListeningState);
-        setOrbState(nextListeningState ? 'listening' : 'idle');
-        if (!nextListeningState) {
-            setOrbVolume(0.08);
-        }
-    };
-
     const stopVoiceSession = () => {
         setIsListening(false);
         setOrbState('idle');
@@ -329,7 +335,7 @@ export const KaprukaAIChat: React.FC = () => {
                 id: 'welcome-message',
                 role: 'assistant',
                 content: "Hi 👋 I'm ShopMate LK, your Kapruka AI shopping assistant. How can I help you discover gifts, cakes, or bouquets across Sri Lanka today?",
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                timestamp: formatMessageTime()
             }
         ]);
         setFeedback({});
@@ -448,14 +454,7 @@ export const KaprukaAIChat: React.FC = () => {
                     role: "assistant",
                     content:
                         data.reply,
-                    timestamp:
-                        new Date().toLocaleTimeString(
-                            [],
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }
-                        ),
+                    timestamp: formatMessageTime(),
                     products:
                         data.products,
                     currentProduct:
@@ -473,14 +472,7 @@ export const KaprukaAIChat: React.FC = () => {
                     role: "assistant",
                     content:
                         "Sorry, something went wrong. Please check your connection and retry.",
-                    timestamp:
-                        new Date().toLocaleTimeString(
-                            [],
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }
-                        ),
+                    timestamp: formatMessageTime(),
                 },
             ]);
         } finally {
@@ -600,7 +592,7 @@ export const KaprukaAIChat: React.FC = () => {
                 id: crypto.randomUUID(),
                 role: 'user',
                 content: userMessage,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: formatMessageTime(),
             },
         ]);
 
@@ -668,9 +660,10 @@ export const KaprukaAIChat: React.FC = () => {
         <div className="
     relative
     flex
-    min-h-screen
+    h-[100dvh]
     w-full
     flex-col
+    overflow-hidden
     font-sans
     select-none
     bg-[#0B0F19]
@@ -697,7 +690,7 @@ export const KaprukaAIChat: React.FC = () => {
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[60vw] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-[#005CB9]/5 via-[#0EA5E9]/5 to-[#FFC72C]/5 blur-[120px] opacity-60" />
 
             {/* Fixed Header Layout Frame */}
-            <header className="z-20 flex w-full max-w-4xl mx-auto items-center justify-between pb-3 border-b border-white/5 shrink-0">
+            <header className="z-20 flex w-full max-w-4xl mx-auto items-center justify-between gap-3 pb-3 border-b border-white/5 shrink-0">
                 <div className="flex items-center gap-2 cursor-pointer" onClick={handleHomeClick}>
                     <span className="text-xl font-black tracking-tight text-white">
                         KAPRUKA <span className="text-[#38BDF8]">AI</span>
@@ -924,11 +917,13 @@ export const KaprukaAIChat: React.FC = () => {
                                                                         <div>
                                                                             {/* Clean Product Image */}
                                                                             {product.image && (
-                                                                                <div className="overflow-hidden rounded-xl bg-slate-950 mb-3.5">
-                                                                                    <img
+                                                                                <div className="relative h-44 w-full overflow-hidden rounded-xl bg-slate-950 mb-3.5">
+                                                                                    <Image
                                                                                         src={product.image}
                                                                                         alt={product.name}
-                                                                                        className="h-44 w-full object-cover transition-transform duration-300 hover:scale-105"
+                                                                                        fill
+                                                                                        sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw"
+                                                                                        className="object-cover transition-transform duration-300 hover:scale-105"
                                                                                     />
                                                                                 </div>
                                                                             )}
