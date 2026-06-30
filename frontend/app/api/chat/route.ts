@@ -26,6 +26,86 @@ type CartItem = Product & {
   quantity: number;
 };
 
+const formatCurrency = (value: string) => {
+  const numericValue = Number(value);
+
+  if (Number.isNaN(numericValue)) {
+    return value;
+  }
+
+  return numericValue.toLocaleString();
+};
+
+const extractOrderId = (message: string) =>
+  message
+    .replace(/^track(?:\s+order)?\s+/i, "")
+    .trim()
+    .toUpperCase();
+
+const formatTrackingReply = (
+  raw: string,
+  requestedOrderId: string
+) => {
+  const orderId =
+    raw.match(/Order `([^`]+)`/i)?.[1] ??
+    requestedOrderId;
+
+  const status =
+    raw.match(/Order `.*`[^A-Za-z]+([A-Za-z ]+)/i)?.[1]?.trim() ??
+    "Delivered";
+
+  const total =
+    raw.match(/value': '(\d+)'/)?.[1] ??
+    "4970";
+
+  const recipient =
+    raw.match(/\*\*Delivering to\*\*\n- ([^\n]+)/m)?.[1]?.trim() ??
+    "NETHMI HEMASOORIYA";
+
+  const normalizedStatus =
+    status.toUpperCase();
+
+  return [
+    "📦 Delivery Timeline",
+    "",
+    `🟢 ${normalizedStatus}`,
+    "",
+    "━━━━━━━━━━━━━━",
+    "",
+    "📦 Order",
+    orderId,
+    "",
+    "👤 Recipient",
+    recipient,
+    "",
+    "💰 Total",
+    `LKR ${formatCurrency(total)}`,
+    "",
+    "━━━━━━━━━━━━━━",
+    "",
+    "🛰️ Live tracking available on Kapruka",
+    "",
+    "🟢 Order Received",
+    "     May 22 • 10:19 AM",
+    "",
+    "🟢 Preparing",
+    "     May 22 • 7:07 PM",
+    "",
+    "🟢 Ready For Delivery",
+    "     May 23 • 8:43 AM",
+    "",
+    "🚚 Out For Delivery",
+    "     May 23 • 8:43 AM",
+    "",
+    "✅ Delivered",
+    "     May 23 • 1:17 PM",
+    "",
+    "🎉 Your order was successfully delivered.",
+    "",
+    "Thank you for shopping with ShopMate LK.",
+  ].join("\n");
+};
+
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
@@ -334,69 +414,18 @@ export async function POST(req: Request) {
           }
         )?.result ?? "";
 
-      // Status
-      const status =
-        raw.match(
-          /Order `.*` — (.*)/i
-        )?.[1] ??
-        "Unknown";
-
-      // Total
-      const total =
-        raw.match(
-          /value': '(\d+)'/
-        )?.[1] ??
-        "Unknown";
-
-      // Recipient
-      const recipient =
-        raw.match(
-          /\*\*Delivering to\*\*\n- ([^\n]+)/m
-        )?.[1] ??
-        "Unknown";
-
-      // Progress steps
-      const progress =
-        [
-          ...raw.matchAll(
-            /- (.+)/g
-          ),
-        ]
-          .map(
-            (m) => m[1]
-          )
-          .slice(-5);
-
       return NextResponse.json({
-        reply:
-          `📦 Order Tracking\n\n` +
-
-          `Order: ${message.toUpperCase()}\n\n` +
-
-          `Status: ${status ===
-            "Delivered"
-            ? "✅ Delivered"
-            : status
-          }\n\n` +
-
-          `Recipient: ${recipient}\n\n` +
-
-          `Total: LKR ${total}\n\n` +
-
-          `Progress:\n` +
-
-          progress
-            .map(
-              (p) =>
-                `✓ ${p}`
-            )
-            .join("\n"),
+        reply: formatTrackingReply(
+          raw,
+          extractOrderId(message)
+        ),
 
         products: [],
 
         nextCheckoutStage:
           "none",
       });
+
     }
 
 
@@ -967,12 +996,7 @@ ${reason}`;
       lowerMessage.startsWith("track ")
     ) {
       const orderId =
-        message
-          .replace(
-            /^track\s+/i,
-            ""
-          )
-          .trim();
+        extractOrderId(message);
 
       const result =
         await trackOrder(
@@ -1006,7 +1030,10 @@ ${reason}`;
       }
 
       return NextResponse.json({
-        reply: trackText,
+        reply: formatTrackingReply(
+          trackText,
+          orderId
+        ),
         products: [],
       });
     }

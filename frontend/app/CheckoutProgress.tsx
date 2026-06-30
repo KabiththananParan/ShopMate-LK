@@ -13,7 +13,8 @@ type CheckoutStage =
     | "gift"
     | "giftAge"
     | "giftBudget"
-    | "giftDate";
+    | "giftDate"
+    | "trackOrder";
 
 type CheckoutProgressProps = {
     stage: CheckoutStage;
@@ -28,6 +29,7 @@ const steps = [
     { id: "deliveryDate", label: "Date", stages: ["deliveryDate"] },
     { id: "address", label: "Address", stages: ["address", "sender"] },
     { id: "gift", label: "Gift", stages: ["gift", "giftAge", "giftBudget", "giftDate"] },
+    { id: "trackOrder", label: "Track", stages: ["trackOrder"] },
 ] as const;
 
 const getActiveIndex = (stage: CheckoutStage) => {
