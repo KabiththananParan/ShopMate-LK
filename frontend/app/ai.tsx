@@ -328,10 +328,10 @@ export const KaprukaAIChat: React.FC = () => {
     const dockWaveBars = [0.28, 0.52, 0.74, 0.42, 0.9, 0.56, 0.36, 0.8, 0.46, 0.66, 0.32, 0.72, 0.5, 0.84, 0.38];
 
     const demoSuggestions: SuggestionCard[] = [
-        { id: 'voice-cake', title: '🎤 mama cake ekak ganna oni', subtitle: 'Demo Sinhala-style voice shopping prompt.', prompt: 'mama cake ekak ganna oni' },
-        { id: 'birthday-mother', title: '🎁 Birthday gift for my mother', subtitle: 'Find a thoughtful gift recommendation.', prompt: 'Birthday gift for my mother' },
-        { id: 'flowers-demo', title: '💐 browse flowers', subtitle: 'Explore fresh flower options.', prompt: 'browse flowers' },
-        { id: 'budget-hamper', title: '🍫 Chocolate hamper under 10000', subtitle: 'Find a polished gift within budget.', prompt: 'Find me a chocolate hamper under LKR 10000' },
+        { id: 'voice-cake', title: '🎤 මට කේක් එකක් ඕන', subtitle: '(Sinhala → Cake Search)', prompt: 'මට කේක් එකක් ඕන' },
+        { id: 'birthday-mother', title: '🎁 Birthday gift for my mother', subtitle: 'Curated gift finder with product cards.', prompt: 'Birthday gift for my mother' },
+        { id: 'flowers-demo', title: '💐 Browse flowers', subtitle: 'Visual bouquet search with delivery options.', prompt: 'browse flowers' },
+        { id: 'budget-hamper', title: '🍫 Hamper under LKR 10,000', subtitle: 'Budget-aware recommendations.', prompt: 'Find me a chocolate hamper under LKR 10000' },
     ];
 
     const suggestions: SuggestionCard[] = [
@@ -723,8 +723,8 @@ export const KaprukaAIChat: React.FC = () => {
     flex-col
     overflow-hidden
     font-sans
-    select-none
-    bg-[#0B0F19]
+    select-text
+    bg-[#070A12]
     p-4
     md:p-8
     text-slate-200
@@ -744,19 +744,26 @@ export const KaprukaAIChat: React.FC = () => {
                 }}
             />
 
-            {/* Background Glow Ambiance */}
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[60vw] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-[#005CB9]/5 via-[#0EA5E9]/5 to-[#FFC72C]/5 blur-[120px] opacity-60" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(56,189,248,0.12),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(255,199,44,0.10),transparent_22%),linear-gradient(180deg,rgba(15,23,42,0.35),transparent_42%)]" />
 
             {/* Fixed Header Layout Frame */}
-            <header className="z-20 flex w-full max-w-4xl mx-auto items-center justify-between gap-3 pb-3 border-b border-white/5 shrink-0">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={handleHomeClick}>
-                    <span className="text-xl font-black tracking-tight text-white">
-                        KAPRUKA <span className="text-[#38BDF8]">AI</span>
+            <header className="z-20 flex w-full max-w-5xl mx-auto items-center justify-between gap-3 pb-3 border-b border-white/10 shrink-0">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={handleHomeClick}>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-sky-300/20 bg-sky-400/10 text-sm font-black text-sky-200 shadow-lg shadow-sky-950/30">
+                        LK
                     </span>
+                    <div>
+                        <span className="block text-xl font-black tracking-tight text-white">
+                            ShopMate <span className="text-[#38BDF8]">LK</span>
+                        </span>
+                        <span className="hidden text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:block">
+                            Kapruka AI shopping concierge
+                        </span>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
-                    <button onClick={handleHomeClick} className="text-[#38BDF8] hover:underline flex items-center gap-1 transition-colors">
-                        <HomeIcon className="h-3.5 w-3.5" /> Reset & New Chat
+                    <button onClick={handleHomeClick} className="flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-sky-200 transition-colors hover:border-sky-300/40 hover:bg-sky-300/10">
+                        <HomeIcon className="h-3.5 w-3.5" /> New Chat
                     </button>
                     <a href="https://www.kapruka.com" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#38BDF8] hidden sm:inline">Main Site</a>
                     <HelpCircleIcon className="h-4 w-4 cursor-pointer hover:text-white" />
@@ -774,7 +781,7 @@ export const KaprukaAIChat: React.FC = () => {
             </header>
 
             {/* Main Interactive Work Area Stage */}
-            <main className="z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden justify-between pt-4 min-h-0">
+            <main className="z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col overflow-hidden justify-between pt-4 min-h-0">
 
                 {/* CONDITIONAL STATE 1: VOICE INTERACTION INTERFACE */}
                 {isListening ? (
@@ -840,40 +847,7 @@ export const KaprukaAIChat: React.FC = () => {
                 ) : (
 
                     /* CONDITIONAL STATE 2: TEXT CHAT STREAM LAYOUT */
-                    <div className="flex flex-col flex-1 overflow-hidden justify-between min-h-0">
-
-                        {/* Title Branding Header */}
-                        {!hasStartedChat && (
-                            <div className="mb-3 animate-fade-in shrink-0">
-                                <div className="mb-1.5 h-[3px] w-10 rounded-full bg-[#FFC72C] shadow-lg shadow-[#FFC72C]/50" />
-                                <h1 className="flex items-center gap-2.5 font-black tracking-tight text-white text-2xl md:text-3xl">
-                                    <SparklesIcon className="shrink-0 text-[#FFC72C] h-7 w-7 md:h-8 md:w-8 animate-pulse" />
-                                    Welcome to ShopMate LK
-                                </h1>
-                                <p className="mt-2 text-sm text-slate-400">
-                                    Try a demo prompt or ask for gifts, cakes, flowers, and order updates.
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Suggestions Carousel (Shown only when chat hasn't started) */}
-                        {!hasStartedChat && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0 animate-fade-in">
-                                {demoSuggestions.map((sug) => (
-                                    <div
-                                        key={sug.id}
-                                        onClick={() => handleSuggestionClick(sug.prompt)}
-                                        className="flex flex-col p-3.5 rounded-xl border border-white/5 bg-[#111827]/40 hover:bg-[#1E293B]/60 hover:border-[#38BDF8]/40 transition-all duration-300 cursor-pointer group text-left shadow-lg"
-                                    >
-                                        <h3 className="text-sm font-bold text-white mb-1 flex items-center justify-between">
-                                            {sug.title}
-                                            <SparklesIcon className="h-3.5 w-3.5 text-[#FFC72C] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </h3>
-                                        <p className="text-xs text-slate-400 line-clamp-2 leading-normal">{sug.subtitle}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                    <div className="flex flex-col flex-1 overflow-hidden min-h-0">
 
                         <CheckoutProgress
                             stage={checkoutStage}
@@ -883,6 +857,43 @@ export const KaprukaAIChat: React.FC = () => {
                         {/* Beautiful Adaptive Messaging Scroll Container Area */}
                         <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent min-h-0">
                             <div className="flex flex-col gap-4 w-full">
+                                {!hasStartedChat && (
+                                    <div className="animate-fade-in">
+                                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4 shadow-2xl shadow-slate-950/30 backdrop-blur-md">
+                                            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-emerald-200">
+                                                <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.8)]" />
+                                                <SparklesIcon className="h-3.5 w-3.5 text-[#FFC72C]" />
+                                                Live Kapruka MCP integration
+                                            </div>
+                                            <h1 className="mt-3 max-w-2xl font-black tracking-tight text-white text-2xl md:text-3xl">
+                                                Shop gifts with ShopMate LK.
+                                            </h1>
+                                            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+                                                Search, add to cart, checkout, pay, and track Kapruka orders in one chat.
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                            {demoSuggestions.map((sug) => (
+                                                <button
+                                                    key={sug.id}
+                                                    type="button"
+                                                    onClick={() => handleSuggestionClick(sug.prompt)}
+                                                    className="relative flex min-h-24 flex-col justify-between overflow-hidden rounded-xl border border-white/10 bg-[#111827]/70 p-3.5 text-left shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:border-[#38BDF8]/50 hover:bg-[#172033] hover:shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
+                                                >
+                                                    <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/40 to-transparent" />
+                                                    <span className="text-sm font-black leading-snug text-white">
+                                                        {sug.title}
+                                                    </span>
+                                                    <span className="mt-3 text-xs leading-normal text-slate-400">
+                                                        {sug.subtitle}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {messages.map((message) => (
                                     <div
                                         key={message.id}
@@ -993,11 +1004,11 @@ export const KaprukaAIChat: React.FC = () => {
                                                     )}
 
                                                     {message.order && (
-                                                        <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-5 text-center shadow-[0_0_35px_rgba(16,185,129,0.22)] animate-pulse">
+                                                        <div className="mt-4 overflow-hidden rounded-xl border border-emerald-300/25 bg-slate-950/70 text-center shadow-2xl shadow-emerald-950/20">
 
-                                                            <div className="mx-auto mb-4 h-px w-full bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
+                                                            <div className="bg-emerald-400/10 p-5">
 
-                                                            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-400/30">
+                                                            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-300 text-slate-950 shadow-lg shadow-emerald-300/30">
                                                                 <CheckIcon className="h-6 w-6" />
                                                             </div>
 
@@ -1009,24 +1020,33 @@ export const KaprukaAIChat: React.FC = () => {
                                                                 Order Created
                                                             </div>
 
-                                                            <div className="mt-3 text-lg font-bold text-white">
+                                                            <div className="mt-3 text-lg font-black text-white">
                                                                 {message.order.id}
                                                             </div>
 
-                                                            <div className="mt-1 text-2xl font-black text-sky-200">
+                                                            <div className="mt-1 text-3xl font-black text-sky-200">
                                                                 LKR {message.order.total}
                                                             </div>
+                                                            </div>
 
+                                                            <div className="grid gap-2 border-t border-white/10 p-4 sm:grid-cols-2">
                                                             <a
                                                                 href={message.order.checkoutUrl}
                                                                 target="_blank"
                                                                 rel="noreferrer"
-                                                                className="mt-5 inline-flex h-10 items-center justify-center rounded-lg bg-emerald-400 px-5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-400/20 transition hover:bg-emerald-300"
+                                                                className="inline-flex h-11 items-center justify-center rounded-lg bg-emerald-300 px-5 text-sm font-black text-slate-950 shadow-lg shadow-emerald-300/20 transition hover:bg-emerald-200"
                                                             >
                                                                 Pay Now
                                                             </a>
 
-                                                            <div className="mx-auto mt-5 h-px w-full bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setInputValue(`Track order ${message.order?.id}`)}
+                                                                className="inline-flex h-11 items-center justify-center rounded-lg border border-sky-300/25 bg-sky-400/10 px-5 text-sm font-black text-sky-100 transition hover:bg-sky-300/15"
+                                                            >
+                                                                Track Order
+                                                            </button>
+                                                            </div>
 
                                                         </div>
                                                     )}
@@ -1288,24 +1308,24 @@ export const KaprukaAIChat: React.FC = () => {
                         </div>
 
                         {/* Search Input Box Area Form Container */}
-                        <form onSubmit={handleSearchSubmit} className="w-full group relative mb-4 shrink-0">
-                            {/* Explicit Navigation & Control Anchor Nodes */}
-                            <button
-                                type="button"
-                                onClick={handleHomeClick}
-                                disabled={loading}
-                                className="absolute left-4 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center rounded-lg h-8 px-2 bg-white/5 text-slate-400 hover:text-white transition gap-1 text-[11px] font-bold border border-white/5"
-                                title="Start New Chat Session"
-                            >
-                                <PlusIcon className="h-4 w-4 text-[#38BDF8]" />
-                                <span className="hidden sm:inline">New Chat</span>
-                            </button>
+                        <form onSubmit={handleSearchSubmit} className="w-full group relative shrink-0 border-t border-white/10 bg-[#070A12]/80 pt-3 backdrop-blur-xl">
+                            <div className={`flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950/80 p-2 shadow-2xl backdrop-blur-md focus-within:border-[#38BDF8] ${loading ? 'opacity-50' : ''}`}>
+                                <button
+                                    type="button"
+                                    onClick={handleHomeClick}
+                                    disabled={loading}
+                                    className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-[11px] font-bold text-slate-300 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
+                                    title="Start New Chat Session"
+                                >
+                                    <PlusIcon className="h-4 w-4 text-[#38BDF8]" />
+                                    <span className="hidden sm:inline">New Chat</span>
+                                </button>
 
-                            <div className={`relative rounded-xl border border-white/10 bg-slate-950/80 shadow-2xl backdrop-blur-md focus-within:border-[#38BDF8] ${loading ? 'opacity-50' : ''}`}>
+                            <div className="relative min-w-0 flex-1">
                                 <input
                                     type="text"
                                     disabled={loading}
-                                    className="w-full text-white text-sm md:text-base transition-all duration-200 placeholder:text-slate-500 focus:outline-none bg-transparent h-14 pl-24 sm:pl-28 pr-24 disabled:cursor-not-allowed"
+                                    className="h-10 w-full bg-transparent pl-2 pr-24 text-sm text-white transition-all duration-200 placeholder:text-slate-500 focus:outline-none disabled:cursor-not-allowed md:text-base"
                                     placeholder={loading ? 'Processing...' : 'Ask ShopMate anything...'}
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
@@ -1339,6 +1359,7 @@ export const KaprukaAIChat: React.FC = () => {
                                 </div>
 
 
+                            </div>
                             </div>
                         </form>
                     </div>

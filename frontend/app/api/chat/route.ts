@@ -667,7 +667,7 @@ export async function POST(req: Request) {
       ) {
         return NextResponse.json({
           reply:
-            `Sorry ðŸ˜” I couldn't find a suitable gift under LKR ${budget}.\n\n` +
+            `Sorry, I couldn't find a suitable gift under LKR ${budget}.\n\n` +
             `Please enter a higher budget.`,
 
           products: [],
@@ -693,7 +693,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         reply:
-          `ðŸŽ Here are my top gift recommendations for your ${recipientName}.\n\n` +
+          `Here are my top gift recommendations for your ${recipientName}.\n\n` +
 
           topPicks
             .map((p, i) => {
@@ -730,11 +730,7 @@ export async function POST(req: Request) {
                                     ? "A fun and thoughtful gift."
                                     : "A great gift choice.";
 
-              return `${[
-                "â¤ï¸",
-                "ðŸŽ",
-                "ðŸŒ¸",
-              ][i]} ${p.name}
+              return `${i + 1}. ${p.name}
 
 LKR ${p.price}
 
@@ -813,7 +809,7 @@ ${reason}`;
           categoryNames
             .map(
               (c) =>
-                `â€¢ ${c}`
+                `• ${c}`
             )
             .join("\n"),
 
@@ -875,7 +871,7 @@ ${reason}`;
 
       return NextResponse.json({
         reply:
-          `ðŸŽ I'd love to help find a gift for your ${recipient}.\n\nHow old is ${recipient === "mother" ||
+          `I'd love to help find a gift for your ${recipient}.\n\nHow old is ${recipient === "mother" ||
             recipient === "wife" ||
             recipient === "girlfriend" ||
             recipient === "sister"
@@ -977,19 +973,21 @@ ${reason}`;
 
 
     if (
-      lowerMessage.startsWith(
-        "remove "
+      /^(remove|delete)(\s+from\s+cart)?\s+/.test(
+        lowerMessage
       )
     ) {
       const productName =
-        lowerMessage.replace(
-          "remove ",
-          ""
-        );
+        lowerMessage
+          .replace(
+            /^(remove|delete)(\s+from\s+cart)?\s+/,
+            ""
+          )
+          .trim();
 
       return NextResponse.json({
         reply:
-          `Removing "${productName}" from your cart.`,
+          `Removed "${productName}" from your cart. Type "cart" to review the remaining items.`,
 
         removeFromCart:
           productName,
@@ -1027,7 +1025,7 @@ ${reason}`;
       const items = cart
         .map(
           (product: CartItem) =>
-            `â€¢ ${product.name} Ã— ${product.quantity} â€” LKR ${(
+            `• ${product.name} × ${product.quantity} — LKR ${(
               product.price *
               product.quantity
             ).toLocaleString()}`
