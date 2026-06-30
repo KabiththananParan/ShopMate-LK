@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import type { OrbState } from 'orb-ui';
 
+import { CheckoutProgress } from "./CheckoutProgress";
 import type { Product } from "@/types/product";
 
 declare global {
@@ -151,6 +152,15 @@ type Message = {
 const formatMessageTime = () =>
     new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+const loadingMessages = [
+    "Finding the perfect gift...",
+    "Searching Kapruka...",
+    "Finding gifts...",
+    "Checking delivery...",
+    "Creating order...",
+    "Generating recommendations...",
+];
+
 export const KaprukaAIChat: React.FC = () => {
     const [inputValue, setInputValue] = useState<string>('');
 
@@ -165,6 +175,7 @@ export const KaprukaAIChat: React.FC = () => {
         }
     ]);
     const [loading, setLoading] = useState(false);
+    const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
     // Checks if the user has actively typed and sent something beyond the greeting bubble
     const hasStartedChat = messages.length > 1;
@@ -302,19 +313,47 @@ export const KaprukaAIChat: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const dockWaveBars = [0.28, 0.52, 0.74, 0.42, 0.9, 0.56, 0.36, 0.8, 0.46, 0.66, 0.32, 0.72, 0.5, 0.84, 0.38];
 
+    const demoSuggestions: SuggestionCard[] = [
+        { id: 'voice-cake', title: '🎤 mama cake ekak ganna oni', subtitle: 'Demo Sinhala-style voice shopping prompt.', prompt: 'mama cake ekak ganna oni' },
+        { id: 'birthday-mother', title: '🎁 Birthday gift for my mother', subtitle: 'Find a thoughtful gift recommendation.', prompt: 'Birthday gift for my mother' },
+        { id: 'flowers-demo', title: '💐 browse flowers', subtitle: 'Explore fresh flower options.', prompt: 'browse flowers' },
+        { id: 'budget-hamper', title: '🍫 Chocolate hamper under 10000', subtitle: 'Find a polished gift within budget.', prompt: 'Find me a chocolate hamper under LKR 10000' },
+    ];
+
     const suggestions: SuggestionCard[] = [
         { id: 'cakes', title: '🎂 Order Cakes', subtitle: 'Find ribbon or chocolate fudge cakes for birthdays.', prompt: 'Show me the best selling birthday cakes available for delivery in Colombo today.' },
         { id: 'hampers', title: '🎁 Gift Hampers', subtitle: 'Surprise loved ones with curated gift sets.', prompt: 'Help me choose a luxury fruit and chocolate hamper for an anniversary.' },
         { id: 'flowers', title: '💐 Fresh Flowers', subtitle: 'Send bouquets across Sri Lanka.', prompt: 'What are the best fresh rose bouquets available for same-day delivery?' },
     ];
 
+    void suggestions;
+
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        window.requestAnimationFrame(() => {
+            messagesEndRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end',
+            });
+        });
     };
 
     useEffect(() => {
         scrollToBottom();
     }, [messages, loading]);
+
+    useEffect(() => {
+        if (!loading) {
+            return;
+        }
+
+        const intervalId = window.setInterval(() => {
+            setLoadingMessageIndex((current) =>
+                (current + 1) % loadingMessages.length
+            );
+        }, 1400);
+
+        return () => window.clearInterval(intervalId);
+    }, [loading]);
 
     const handleSuggestionClick = (promptText: string) => {
         if (loading) return;
@@ -344,6 +383,7 @@ export const KaprukaAIChat: React.FC = () => {
     async function submitToChatAPI(
         userPrompt: string
     ) {
+        setLoadingMessageIndex(0);
         setLoading(true);
 
         // STEP 13.4
@@ -533,6 +573,7 @@ export const KaprukaAIChat: React.FC = () => {
         recognition.maxAlternatives = 1;
 
         setIsListening(true);
+        setOrbState('listening');
 
         recognition.start();
 
@@ -559,10 +600,12 @@ export const KaprukaAIChat: React.FC = () => {
 
         recognition.onerror = () => {
             setIsListening(false);
+            setOrbState('idle');
         };
 
         recognition.onend = () => {
             setIsListening(false);
+            setOrbState('idle');
         };
     };
 
@@ -704,8 +747,14 @@ export const KaprukaAIChat: React.FC = () => {
                     <HelpCircleIcon className="h-4 w-4 cursor-pointer hover:text-white" />
                 </div>
 
-                <div className="rounded-full bg-sky-500/20 px-3 py-1 text-sm text-sky-300">
-                    Cart ({cart.length})
+                <div
+                    className={`flex h-9 min-w-14 items-center justify-center gap-1.5 rounded-full border border-sky-300/20 bg-sky-500/15 px-3 text-sm font-bold text-sky-100 shadow-lg shadow-sky-500/10 transition-transform ${
+                        cart.length > 0 ? "animate-bounce" : ""
+                    }`}
+                    aria-label={`${cart.length} items in cart`}
+                >
+                    <ShoppingCartIcon className="h-4 w-4 text-[#38BDF8]" />
+                    <span>{cart.length}</span>
                 </div>
             </header>
 
@@ -716,9 +765,10 @@ export const KaprukaAIChat: React.FC = () => {
                 {isListening ? (
                     <div className="flex flex-col flex-1 items-center justify-center text-center animate-fade-in pb-12">
                         <div className="mb-4 h-[3px] w-12 rounded-full bg-[#FFC72C] shadow-lg shadow-[#FFC72C]/50" />
-                        <p className="text-sm font-bold uppercase tracking-widest text-[#38BDF8] animate-pulse">
-                            {orbState === 'listening' ? 'Listening to you...' : 'Kapruka AI is Speaking...'}
-                        </p>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-500/10 px-4 py-2 text-sm font-bold uppercase tracking-widest text-[#38BDF8] shadow-lg shadow-sky-500/10 animate-pulse">
+                            <MicIcon className="h-4 w-4" />
+                            <span>{orbState === 'listening' ? 'Listening...' : 'Kapruka AI is Speaking...'}</span>
+                        </div>
 
                         <div
                             className="voice-orb-stage voice-orb-siri my-8 flex h-60 w-60 items-center justify-center"
@@ -782,16 +832,19 @@ export const KaprukaAIChat: React.FC = () => {
                             <div className="mb-3 animate-fade-in shrink-0">
                                 <div className="mb-1.5 h-[3px] w-10 rounded-full bg-[#FFC72C] shadow-lg shadow-[#FFC72C]/50" />
                                 <h1 className="flex items-center gap-2.5 font-black tracking-tight text-white text-2xl md:text-3xl">
-                                    <ShoppingCartIcon className="shrink-0 text-[#38BDF8] h-7 w-7 md:h-8 md:w-8" />
-                                    What can I help you find?
+                                    <SparklesIcon className="shrink-0 text-[#FFC72C] h-7 w-7 md:h-8 md:w-8 animate-pulse" />
+                                    Welcome to ShopMate LK
                                 </h1>
+                                <p className="mt-2 text-sm text-slate-400">
+                                    Try a demo prompt or ask for gifts, cakes, flowers, and order updates.
+                                </p>
                             </div>
                         )}
 
                         {/* Suggestions Carousel (Shown only when chat hasn't started) */}
                         {!hasStartedChat && (
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 shrink-0 animate-fade-in">
-                                {suggestions.map((sug) => (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0 animate-fade-in">
+                                {demoSuggestions.map((sug) => (
                                     <div
                                         key={sug.id}
                                         onClick={() => handleSuggestionClick(sug.prompt)}
@@ -806,6 +859,11 @@ export const KaprukaAIChat: React.FC = () => {
                                 ))}
                             </div>
                         )}
+
+                        <CheckoutProgress
+                            stage={checkoutStage}
+                            visible={checkoutPending || checkoutStage !== "none"}
+                        />
 
                         {/* Beautiful Adaptive Messaging Scroll Container Area */}
                         <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent min-h-0">
@@ -832,38 +890,40 @@ export const KaprukaAIChat: React.FC = () => {
                                                     </p>
 
                                                     {message.order && (
-                                                        <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/10 p-4">
+                                                        <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-5 text-center shadow-[0_0_35px_rgba(16,185,129,0.22)] animate-pulse">
 
-                                                            <div className="font-semibold text-green-300">
+                                                            <div className="mx-auto mb-4 h-px w-full bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
+
+                                                            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-400/30">
+                                                                <CheckIcon className="h-6 w-6" />
+                                                            </div>
+
+                                                            <div className="sr-only">
                                                                 Order Created ✓
                                                             </div>
 
-                                                            <div className="mt-2 text-sm text-white">
+                                                            <div className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
+                                                                Order Created
+                                                            </div>
+
+                                                            <div className="mt-3 text-lg font-bold text-white">
                                                                 {message.order.id}
                                                             </div>
 
-                                                            <div className="mt-1 text-sm text-slate-300">
-                                                                Total: LKR {message.order.total}
+                                                            <div className="mt-1 text-2xl font-black text-sky-200">
+                                                                LKR {message.order.total}
                                                             </div>
 
                                                             <a
                                                                 href={message.order.checkoutUrl}
                                                                 target="_blank"
                                                                 rel="noreferrer"
-                                                                className="
-                                                                    mt-4
-                                                                    inline-flex
-                                                                    rounded-lg
-                                                                    bg-sky-500
-                                                                    px-4
-                                                                    py-2
-                                                                    font-medium
-                                                                    text-white
-                                                                    hover:bg-sky-600
-                                                                "
+                                                                className="mt-5 inline-flex h-10 items-center justify-center rounded-lg bg-emerald-400 px-5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-400/20 transition hover:bg-emerald-300"
                                                             >
                                                                 Pay Now
                                                             </a>
+
+                                                            <div className="mx-auto mt-5 h-px w-full bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
 
                                                         </div>
                                                     )}
@@ -909,136 +969,114 @@ export const KaprukaAIChat: React.FC = () => {
 
                                                             {/* RIGHT SIDE: Cleaner, Card-focused Products Grid */}
                                                             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                {message.products.map((product) => (
+                                                                {message.products.map((product, index) => (
                                                                     <div
                                                                         key={product.id}
-                                                                        className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-xl transition-all duration-200 hover:border-white/20"
+                                                                        className="group relative flex min-h-[430px] flex-col justify-between overflow-hidden rounded-xl border border-white/10 bg-slate-950/80 p-4 shadow-xl shadow-sky-950/20 transition-all duration-300 hover:-translate-y-1 hover:border-sky-300/40 hover:shadow-[0_18px_45px_rgba(14,165,233,0.18)]"
                                                                     >
+                                                                        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sky-400/10 to-transparent" />
                                                                         <div>
+                                                                            <div className="mb-3 flex items-center justify-between">
+                                                                                <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] ${
+                                                                                    index === 0
+                                                                                        ? "bg-rose-500/15 text-rose-200 ring-1 ring-rose-300/25"
+                                                                                        : "bg-sky-500/15 text-sky-200 ring-1 ring-sky-300/20"
+                                                                                }`}>
+                                                                                    <span>{index === 0 ? "❤️" : "✨"}</span>
+                                                                                    {index === 0 ? "Best Match" : "Good Gift"}
+                                                                                </span>
+                                                                                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-medium text-slate-400">
+                                                                                    Stock: {product.stock}
+                                                                                </span>
+                                                                            </div>
+
                                                                             {/* Clean Product Image */}
-                                                                            {product.image && (
-                                                                                <div className="relative h-44 w-full overflow-hidden rounded-xl bg-slate-950 mb-3.5">
+                                                                            <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg border border-white/10 bg-slate-900">
+                                                                                {product.image ? (
                                                                                     <Image
                                                                                         src={product.image}
                                                                                         alt={product.name}
                                                                                         fill
                                                                                         sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw"
-                                                                                        className="object-cover transition-transform duration-300 hover:scale-105"
+                                                                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                                                                                     />
-                                                                                </div>
-                                                                            )}
+                                                                                ) : (
+                                                                                    <div className="flex h-full items-center justify-center text-sm font-semibold text-slate-500">
+                                                                                        Gift Preview
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
 
                                                                             {/* Product Core Info */}
-                                                                            <h4 className="font-semibold text-base text-white tracking-tight line-clamp-1">
+                                                                            <h4 className="min-h-11 text-base font-bold leading-snug tracking-tight text-white line-clamp-2">
                                                                                 {product.name}
                                                                             </h4>
 
-                                                                            <div className="mt-1.5 flex items-baseline justify-between">
-                                                                                <p className="text-base font-bold text-sky-400">
+                                                                            <div className="mt-2 flex items-baseline justify-between">
+                                                                                <p className="text-xl font-black text-sky-300">
                                                                                     LKR {product.price.toLocaleString()}
                                                                                 </p>
-                                                                                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
-                                                                                    Stock: {product.stock}
-                                                                                </span>
+                                                                            </div>
+
+                                                                            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                                                                                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#FFC72C]">
+                                                                                    Why we chose it
+                                                                                </p>
+                                                                                <p className="mt-1.5 text-sm leading-relaxed text-slate-300 line-clamp-3">
+                                                                                    {product.description || "A thoughtful pick with strong gifting appeal and a clear fit for the occasion."}
+                                                                                </p>
                                                                             </div>
                                                                         </div>
 
                                                                         {/* Action Row */}
                                                                         <div className="mt-5 flex items-center gap-2.5">
-                                                                            <div className="flex items-center gap-2">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setCart((prev) => {
+                                                                                        const existing =
+                                                                                            prev.find(
+                                                                                                (item) =>
+                                                                                                    item.id ===
+                                                                                                    product.id
+                                                                                            );
 
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        setCart((prev) =>
-                                                                                            prev.map(
+                                                                                        if (existing) {
+                                                                                            return prev.map(
                                                                                                 (item) =>
                                                                                                     item.id ===
                                                                                                         product.id
                                                                                                         ? {
                                                                                                             ...item,
                                                                                                             quantity:
-                                                                                                                Math.max(
-                                                                                                                    1,
-                                                                                                                    item.quantity - 1
-                                                                                                                ),
+                                                                                                                item.quantity +
+                                                                                                                1,
                                                                                                         }
                                                                                                         : item
-                                                                                            )
-                                                                                        );
-                                                                                    }}
-                                                                                    className="
-            rounded-lg
-            bg-slate-700
-            px-3
-            py-2
-            text-white
-        "
-                                                                                >
-                                                                                    -
-                                                                                </button>
+                                                                                            );
+                                                                                        }
 
-                                                                                <span className="min-w-[2rem] text-center text-sm font-semibold text-white">
-                                                                                    {
-                                                                                        cart.find(
-                                                                                            (item) =>
-                                                                                                item.id ===
-                                                                                                product.id
-                                                                                        )?.quantity ?? 0
-                                                                                    }
-                                                                                </span>
-
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        setCart((prev) => {
-                                                                                            const existing =
-                                                                                                prev.find(
-                                                                                                    (item) =>
-                                                                                                        item.id ===
-                                                                                                        product.id
-                                                                                                );
-
-                                                                                            if (existing) {
-                                                                                                return prev.map(
-                                                                                                    (item) =>
-                                                                                                        item.id ===
-                                                                                                            product.id
-                                                                                                            ? {
-                                                                                                                ...item,
-                                                                                                                quantity:
-                                                                                                                    item.quantity +
-                                                                                                                    1,
-                                                                                                            }
-                                                                                                            : item
-                                                                                                );
-                                                                                            }
-
-                                                                                            return [
-                                                                                                ...prev,
-                                                                                                {
-                                                                                                    ...product,
-                                                                                                    quantity: 1,
-                                                                                                },
-                                                                                            ];
-                                                                                        });
-                                                                                    }}
-                                                                                    className="
-            rounded-lg
-            bg-sky-500
-            px-4
-            py-2
-            text-white
-        "
-                                                                                >
-                                                                                    +
-                                                                                </button>
-
-                                                                            </div>
+                                                                                        return [
+                                                                                            ...prev,
+                                                                                            {
+                                                                                                ...product,
+                                                                                                quantity: 1,
+                                                                                            },
+                                                                                        ];
+                                                                                    });
+                                                                                }}
+                                                                                className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-sky-400 px-4 text-sm font-black text-slate-950 shadow-lg shadow-sky-400/20 transition hover:bg-sky-300"
+                                                                            >
+                                                                                Add To Bag
+                                                                                {cart.find((item) => item.id === product.id)?.quantity
+                                                                                    ? ` (${cart.find((item) => item.id === product.id)?.quantity})`
+                                                                                    : ""}
+                                                                            </button>
 
                                                                             <a
                                                                                 href={product.url}
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/5 whitespace-nowrap"
+                                                                                className="inline-flex h-11 items-center justify-center rounded-lg border border-white/10 px-4 text-xs font-semibold text-slate-300 transition hover:bg-white/5 whitespace-nowrap"
                                                                             >
                                                                                 Details
                                                                             </a>
@@ -1122,10 +1160,22 @@ export const KaprukaAIChat: React.FC = () => {
 
                                 {loading && (
                                     <div className="flex justify-start">
-                                        <div className="rounded-2xl rounded-tl-sm border border-white/5 bg-[#111827]/40 p-4">
-                                            <p className="text-slate-400 animate-pulse text-xs md:text-sm font-medium">
-                                                ShopMate LK is finding products...
-                                            </p>
+                                        <div className="rounded-2xl rounded-tl-sm border border-sky-400/10 bg-[#111827]/70 px-4 py-3 shadow-xl backdrop-blur-md">
+                                            <div className="flex items-center gap-3">
+                                                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10 text-sm">
+                                                    🤖
+                                                </span>
+                                                <div>
+                                                    <p className="text-xs md:text-sm font-medium text-slate-300 animate-pulse">
+                                                        {loadingMessages[loadingMessageIndex]}
+                                                    </p>
+                                                    <div className="mt-2 flex items-center gap-1">
+                                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-sky-300 [animation-delay:-0.2s]" />
+                                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-sky-300 [animation-delay:-0.1s]" />
+                                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-sky-300" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
