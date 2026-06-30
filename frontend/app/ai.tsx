@@ -376,7 +376,7 @@ export const KaprukaAIChat: React.FC = () => {
         { id: 'voice-cake', title: '🎤 මට කේක් එකක් ඕන', subtitle: '(Sinhala → Cake Search)', prompt: 'මට කේක් එකක් ඕන' },
         { id: 'birthday-mother', title: '🎁 Birthday gift for my mother', subtitle: 'Curated gift finder with product cards.', prompt: 'Birthday gift for my mother' },
         { id: 'flowers-demo', title: '💐 Browse flowers', subtitle: 'Visual bouquet search with delivery options.', prompt: 'browse flowers' },
-        { id: 'budget-hamper', title: '🍫 Hamper under LKR 10,000', subtitle: 'Budget-aware recommendations.', prompt: 'Find me a chocolate hamper under LKR 10000' },
+        { id: 'track-order', title: '📦 Track order: VPAY827982BA', subtitle: 'Open the live delivery timeline.', prompt: 'track order VPAY827982BA' },
     ];
 
     const suggestions: SuggestionCard[] = [
